@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>疼痛評估系統互動模擬｜謝靜伊（中山醫學大學附設醫院 人工智慧中心）</title>
+<meta name="author" content="謝靜伊｜中山醫學大學附設醫院 人工智慧中心 資訊護理師">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F4F7F9;--surface:#FFFFFF;--surface-2:#EDF2F6;--ink:#17283A;--ink-2:#465A6D;--ink-3:#6E8297;--line:#D5DFE8;
+  --navy:#123554;--teal:#0B8A84;--teal-2:#08706B;--on-teal:#fff;--teal-soft:#D6EFED;--hi:#F2B705;--hi-soft:#FFF3C9;--ok:#2E8B57;
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;--mono:"JetBrains Mono",Consolas,ui-monospace,monospace;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0D1620;--surface:#132130;--surface-2:#1A2B3D;--ink:#E4ECF4;--ink-2:#A9BACB;--ink-3:#7F93A8;--line:#26394D;--navy:#E4ECF4;--teal:#3CC2B9;--teal-2:#5DD3CB;--on-teal:#03201E;--teal-soft:#123A3A;--hi-soft:#3A3212;--ok:#5FD08F;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D1620;--surface:#132130;--surface-2:#1A2B3D;--ink:#E4ECF4;--ink-2:#A9BACB;--ink-3:#7F93A8;--line:#26394D;--navy:#E4ECF4;--teal:#3CC2B9;--teal-2:#5DD3CB;--on-teal:#03201E;--teal-soft:#123A3A;--hi-soft:#3A3212;--ok:#5FD08F;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html.big{font-size:118.75%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.7}
+:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.wrap{max-width:1440px;margin:0 auto;padding:clamp(22px,4vw,44px) clamp(14px,2.5vw,32px) 48px}
+.head{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:end;justify-content:space-between;margin-bottom:18px}
+.head p{margin:0;color:var(--ink-2);font-size:.92rem}
+h1{margin:4px 0 0;font-size:clamp(1.6rem,3vw,2.3rem);line-height:1.25;color:var(--navy);font-weight:900}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:700;font-size:.92rem;line-height:1.2;border-radius:8px;padding:9px 16px;border:1.5px solid var(--teal);background:var(--teal);color:var(--on-teal);cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--teal-2);border-color:var(--teal-2)}
+.btn.ghost{background:transparent;color:var(--teal)}
+.btn.ghost:hover{background:var(--teal-soft)}
+.btn.arm{background:#C2433F;border-color:#C2433F;color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.pulse{animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(11,138,132,.5)}70%{box-shadow:0 0 0 10px rgba(11,138,132,0)}100%{box-shadow:0 0 0 0 rgba(11,138,132,0)}}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;max-height:calc(100dvh - 24px);overflow:auto}
+@media (max-width:1000px){.rail{position:static;max-height:none;display:flex;gap:12px;overflow-x:auto}}
+.phase{margin-bottom:10px}
+.phase h4{margin:0 0 4px;font-size:.78rem;color:var(--ink-3);font-weight:900;letter-spacing:.02em;white-space:nowrap}
+.phase ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+@media (max-width:1000px){.phase{margin:0;min-width:200px}}
+.phase button{width:100%;font:inherit;text-align:left;display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:center;border:0;background:transparent;color:var(--ink-2);padding:5px 6px;border-radius:7px;cursor:pointer;font-size:.86rem;line-height:1.35}
+.phase button:hover{background:var(--surface-2)}
+.phase button i{font-style:normal;width:22px;height:22px;border-radius:50%;border:2px solid var(--hi);display:grid;place-items:center;font-size:.72rem;font-weight:900;color:var(--ink)}
+.phase button.done i{background:var(--hi);border-color:var(--hi);color:#1d1d1d}
+.phase button.on{background:var(--hi-soft);color:var(--ink);font-weight:700}
+/* screen */
+.scr-scroll{overflow-x:auto;border-radius:12px;box-shadow:0 24px 48px -30px rgba(18,53,84,.6)}
+.scrwrap{position:relative;min-width:900px}
+#scr{position:relative;height:600px;border-radius:12px;overflow:hidden;font:13px/1.45 "Segoe UI",system-ui,"Noto Sans TC",sans-serif;background:#fff;color:#11181C;user-select:none}
+#scr input,#scr textarea,#scr select{font:inherit}
+.hlbox{position:absolute;border:3px solid #F2B705;border-radius:9px;pointer-events:none;z-index:30;box-shadow:0 0 0 3px rgba(242,183,5,.25),0 0 16px rgba(242,183,5,.55);transition:left .3s,top .3s,width .3s,height .3s;animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 6px rgba(242,183,5,.18),0 0 24px rgba(242,183,5,.75)}}
+.hlbox b{position:absolute;top:-3px;width:30px;height:30px;border-radius:50%;background:#F2B705;color:#1d1d1d;display:grid;place-items:center;font:900 15px/1 var(--font);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.hlbox.sl b{left:-40px}.hlbox.sr b{right:-40px}.hlbox.st b{left:-3px;top:-38px}
+.hlbox.nudge{animation:nudge .45s}
+@keyframes nudge{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.flyer{position:absolute;left:0;top:0;z-index:40;pointer-events:none;padding:4px 11px;border-radius:999px;background:#249361;color:#fff;font:700 12.5px/1.2 var(--font);white-space:nowrap;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.busy-ov{position:absolute;inset:0;background:rgba(255,255,255,.75);display:grid;place-items:center;z-index:25;font:700 15px var(--font);color:#11181C}
+.busy-ov span::before{content:"";display:inline-block;width:16px;height:16px;border:3px solid #C1C8CD;border-top-color:#249361;border-radius:50%;margin-right:10px;vertical-align:-3px;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+/* panel */
+.panel{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 20px}
+@media (max-width:760px){.panel{grid-template-columns:minmax(0,1fr)}}
+.panel h2{margin:0;font-size:1.2rem;line-height:1.4}
+.panel h2 small{display:block;font-size:.8rem;color:var(--ink-3);font-weight:700}
+.panel .pg{font-size:.8rem;font-weight:700;color:var(--ink-3);white-space:nowrap;align-self:start}
+.tasks{grid-column:1/-1;list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.tasks li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:6px 10px;border-radius:8px;font-size:.98rem}
+.tasks li i{font-style:normal;width:26px;height:26px;border-radius:50%;border:2.5px solid var(--hi);display:grid;place-items:center;font-weight:900;font-size:.82rem}
+.tasks li.done{color:var(--ink-3)}
+.tasks li.done i{background:var(--hi);color:#1d1d1d}
+.tasks li.now{background:var(--hi-soft);font-weight:700}
+.tip{grid-column:1/-1;margin:0;padding:10px 14px;border-left:4px solid var(--teal);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.93rem}
+.tip.win{border-left-color:var(--ok)}
+.nav{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nav .sp{flex:1}
+.nav .hint{font-size:.85rem;color:var(--ink-3)}
+.rs-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--surface);padding:10px 18px;border-radius:10px;font-weight:700;z-index:90;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.fs{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:50}
+footer{margin-top:28px;color:var(--ink-3);font-size:.85rem}
+
+:where(#scr) svg{width:16px;height:16px;flex:none}
+.sp-top svg{vertical-align:-3px}
+/* ===== VS Code skin ===== */
+.vs{display:grid;grid-template-rows:34px minmax(0,1fr) 22px;height:100%;background:#1F1F1F;color:#CCCCCC}
+.vs-title{display:flex;align-items:center;gap:12px;padding:0 10px;background:#181818;border-bottom:1px solid #2B2B2B;font-size:12px;color:#9D9D9D}
+.vs-cmd{margin:0 auto;width:36%;background:#2A2A2A;border:1px solid #3C3C3C;border-radius:6px;text-align:center;padding:2px 0}
+.vs-body{display:grid;grid-template-columns:44px 230px minmax(0,1fr);min-height:0}
+.vs-body.noside{grid-template-columns:44px minmax(0,1fr)}
+.vs-act{background:#181818;border-right:1px solid #2B2B2B;display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:12px;color:#858585}
+.vs-act svg{width:22px;height:22px}
+.vs-act svg:first-child{color:#D7D7D7}
+.vs-side{background:#181818;border-right:1px solid #2B2B2B;padding:8px 0;font-size:12.5px;overflow:hidden}
+.vs-side h6{margin:2px 14px 8px;font-size:11px;letter-spacing:.06em;color:#BBBBBB;font-weight:600}
+.vs-sec{padding:2px 12px;color:#BBBBBB;font-size:11.5px;font-weight:600}
+.vs-folder{display:flex;align-items:center;justify-content:space-between;padding:3px 8px 3px 12px;font-weight:700;font-size:11.5px;color:#CCCCCC;margin-top:4px}
+.vs-folder .acts{display:flex;gap:2px}
+.vs-ic{width:24px;height:24px;display:grid;place-items:center;border-radius:4px;color:#CCCCCC}
+.vs-ic svg{width:16px;height:16px}
+.vs-file{padding:3px 10px 3px 28px;display:flex;gap:7px;align-items:center;color:#CCCCCC}
+.vs-file .fi{font:700 10.5px/1 var(--mono);min-width:22px}
+.vs-editor{display:flex;flex-direction:column;min-width:0;background:#1F1F1F;position:relative}
+.vs-tabs{display:flex;height:35px;background:#181818;border-bottom:1px solid #2B2B2B;flex:none}
+.vs-tab{display:flex;align-items:center;gap:7px;padding:0 14px;border-right:1px solid #2B2B2B;color:#9D9D9D;font-size:12.5px}
+.vs-tab.on{background:#1F1F1F;color:#FFFFFF;box-shadow:inset 0 1px 0 #0078D4}
+.vs-content{flex:1;min-height:0;overflow:hidden;position:relative}
+.vs-code{padding:8px 0;font:12.5px/1.65 Consolas,var(--mono);white-space:pre}
+.vs-ln{display:grid;grid-template-columns:48px 1fr}
+.vs-ln>i{font-style:normal;color:#6E7681;text-align:right;padding-right:16px}
+.vs-ln.cur{background:#2A2D2E}
+.k{color:#569CD6}.s{color:#CE9178}.v{color:#9CDCFE}.fn{color:#DCDCAA}.c{color:#6A9955}.ph{color:#F2B705;background:rgba(242,183,5,.12);border:1px dashed #F2B705;padding:0 4px;border-radius:3px}
+.vs-panel{height:46%;border-top:1px solid #2B2B2B;background:#181818;display:flex;flex-direction:column;flex:none}
+.vs-ptabs{display:flex;gap:20px;padding:6px 16px;font-size:11.5px;color:#9D9D9D}
+.vs-ptabs .on{color:#E7E7E7;border-bottom:1px solid #E7E7E7;padding-bottom:2px}
+.vs-term{flex:1;padding:4px 16px;font:12.5px/1.7 Consolas,var(--mono);color:#CCCCCC;white-space:pre-wrap;overflow:hidden}
+.vs-term .pl{display:block;padding:1px 4px;border-radius:3px}
+.vs-term .ok{color:#89D185}
+.vs-term .cur::after{content:"▍";animation:blink 1s steps(1) infinite;color:#CCCCCC}
+@keyframes blink{50%{opacity:0}}
+.vs-status{background:#181818;border-top:1px solid #2B2B2B;display:flex;align-items:center;gap:14px;padding:0 10px;font-size:11.5px;color:#9D9D9D}
+.vs-empty{height:100%;display:grid;place-items:center;position:relative}
+.vs-wm{position:absolute;width:220px;height:220px;opacity:.07;color:#fff}
+.vs-keys{position:relative;display:flex;align-items:center;gap:6px;color:#CCCCCC;font-size:13px;padding:10px 14px;border-radius:8px;background:#252526;border:1px solid #3C3C3C}
+.vs-keys kbd,.kc{font:600 12px/1 var(--mono);background:#3C3C3C;color:#E7E7E7;border-radius:4px;padding:4px 7px;border-bottom:2px solid #555}
+.vs-keys span{margin-left:8px;color:#9D9D9D}
+.vs-pal{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:560px;background:#252526;border:1px solid #454545;border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.55);padding:6px;z-index:5;color:#CCCCCC}
+.vs-caret{display:inline-block;width:1px;height:15px;background:#E7E7E7;vertical-align:-2px;margin-left:1px;animation:blink 1s steps(1) infinite}
+.vs-pin{border:1px solid #0078D4;border-radius:4px;padding:4px 8px;margin-bottom:4px;color:#E7E7E7}
+.vs-pi{padding:5px 10px;border-radius:4px;display:flex;justify-content:space-between}
+.vs-pi b{color:#2AAAFF}
+.vs-pi.sel{background:#04395E;color:#fff}
+.vs-pi small{color:#9D9D9D}
+.vs-welcome{padding:40px 50px;color:#CCCCCC}
+.vs-welcome h3{margin:0;font-size:30px;font-weight:300;color:#E7E7E7}
+.vs-welcome p{margin:2px 0 26px;color:#9D9D9D;font-size:16px}
+.vs-welcome h5{margin:0 0 8px;font-size:15px;font-weight:400;color:#E7E7E7}
+.vs-welcome a{display:block;color:#4DAAFC;margin-bottom:6px}
+.vs-btn{display:inline-flex;align-items:center;gap:8px;background:#0078D4;color:#fff;border-radius:4px;padding:6px 14px;font-weight:600;margin:18px 0 0 18px}
+.save-hint{position:absolute;right:16px;bottom:14px;display:flex;align-items:center;gap:6px;background:#252526;border:1px solid #3C3C3C;border-radius:8px;padding:8px 12px;color:#E7E7E7;font-size:12.5px}
+/* desktop */
+.desk{display:grid;grid-template-columns:minmax(0,1fr) 230px;height:100%}
+.desk-r{background:linear-gradient(160deg,#0F3B57,#145A72);position:relative;display:grid;place-items:center;align-content:center;gap:20px;color:#fff;font-size:12.5px}
+.fold{display:grid;justify-items:center;gap:4px;padding:10px 12px;border-radius:6px}
+.fold svg{width:64px;height:54px}
+.fold span{background:rgba(0,0,0,.25);padding:1px 8px;border-radius:3px}
+.desk-note{background:#C0392B;color:#fff;padding:8px 12px;font-weight:700;line-height:1.5;font-size:13px;max-width:190px}
+
+/* ===== Supabase skin ===== */
+.sp{display:grid;grid-template-rows:46px minmax(0,1fr);height:100%;background:#fff;color:#11181C}
+.sp-top{display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid #E6E8EB;white-space:nowrap;font-size:13.5px}
+.sp-top .bolt{width:20px;height:20px;color:#3ECF8E}
+.sp-top .sep{color:#C1C8CD}
+.sp-top .bdg{font-size:10px;font-weight:600;border:1px solid #D7DBDF;border-radius:999px;padding:1px 7px;color:#687076}
+.sp-top .prod{font-size:10px;font-weight:700;border:1px solid #F5C77E;background:#FFF4E5;color:#C27803;border-radius:999px;padding:1px 8px}
+.sp-top .conn{background:#249361;color:#fff;border-radius:8px;padding:4px 12px;font-weight:600}
+.sp-top .rt{margin-left:auto;display:flex;gap:12px;color:#687076}
+.sp-body{display:grid;grid-template-columns:186px minmax(0,1fr);min-height:0}
+.sp-nav{border-right:1px solid #E6E8EB;padding:8px 6px;background:#FCFCFD;overflow:hidden}
+.sp-nav a{display:flex;align-items:center;gap:9px;padding:5px 9px;border-radius:6px;color:#3D4449;font-size:13px;cursor:default}
+.sp-nav a svg{width:16px;height:16px;flex:none;color:#687076}
+.sp-nav a.on{background:#EEF0F2;color:#11181C;font-weight:600}
+.sp.compact .sp-body{grid-template-columns:48px minmax(0,1fr)!important}
+.sp.compact .sp-nav a{justify-content:center;padding:6px 0}
+.sp.compact .sp-nav a span{display:none}
+.sp-nav hr{border:0;border-top:1px solid #E6E8EB;margin:5px 4px}
+.sp-main{min-width:0;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.sp-split{display:grid;grid-template-columns:200px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100%;min-height:0}
+.sp-sub{border-right:1px solid #E6E8EB;padding:14px 10px;overflow:hidden;background:#fff}
+.sp-sub h5{margin:0 6px 12px;font-size:15px;font-weight:600}
+.sp-sub small{display:block;margin:12px 8px 4px;font-size:10.5px;color:#889096;letter-spacing:.06em;font-weight:600}
+.sp-sub a{display:block;padding:4px 8px;border-radius:6px;color:#3D4449;font-size:13px}
+.sp-sub a.on{background:#EEF0F2;color:#11181C;font-weight:600}
+.sp-box{border:1px solid #D7DBDF;border-radius:8px;padding:6px 10px;color:#687076;font-size:13px;background:#fff;margin:0 4px 8px}
+.sp-page{padding:20px 26px;overflow:hidden}
+.sp-page h3{margin:0 0 4px;font-size:20px;font-weight:600}
+.sp-page .sub{margin:0 0 16px;color:#687076}
+.sp-card{border:1px solid #E6E8EB;border-radius:8px;overflow:hidden;background:#fff}
+.sp-row{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;padding:12px 16px;border-top:1px solid #E6E8EB;align-items:center}
+.sp-row:first-child{border-top:0}
+.sp-in{border:1px solid #D7DBDF;border-radius:6px;padding:6px 10px;background:#F8F9FA;min-height:32px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sp-in .ph{all:unset;color:#B0B7BC}
+.sp-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #D7DBDF;border-radius:6px;padding:4px 10px;background:#fff;font-weight:500;white-space:nowrap}
+.sp-btn.g{background:#249361;border-color:#249361;color:#fff;font-weight:600}
+.sp-btn.gl{background:#6CDDA5;border-color:#6CDDA5;color:#11181C;font-weight:600}
+.sp-btn.dis{opacity:.45}
+.sp-link{color:#11181C;text-decoration:underline}
+.strength{height:4px;border-radius:2px;background:#E6E8EB;margin-top:6px;overflow:hidden}
+.strength i{display:block;height:100%;width:0;background:#249361;transition:width .5s}
+.sp-sql{display:grid;grid-template-rows:38px 40px minmax(0,1fr) 130px;height:100%;min-height:0}
+.sp-sqltabs{display:flex;border-bottom:1px solid #E6E8EB;background:#F8F9FA}
+.sp-sqltabs span{display:flex;align-items:center;gap:6px;padding:0 16px;border-right:1px solid #E6E8EB;font-size:12.5px;color:#687076}
+.sp-sqltabs span.on{background:#fff;color:#11181C;box-shadow:inset 0 2px 0 #11181C}
+.sp-sqltool{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:0 12px;border-bottom:1px solid #E6E8EB;color:#687076;font-size:12.5px}
+.sp-ed{overflow:hidden;padding:8px 0;font:12px/1.62 var(--mono);background:#fff;white-space:pre}
+.sp-ed .ln{display:grid;grid-template-columns:40px 1fr}
+.sp-ed .ln i{font-style:normal;color:#B0B7BC;text-align:right;padding-right:12px}
+.sp-ed .kw{color:#2563EB}.sp-ed .cm{color:#889096}.sp-ed .st{color:#B45309}
+.sp-ed .empty{color:#B0B7BC;padding:18px 24px;white-space:normal;font-family:var(--font);font-size:13.5px}
+.sp-res{border-top:1px solid #E6E8EB;display:flex;flex-direction:column}
+.sp-res .rt{display:flex;gap:16px;padding:6px 14px;font-size:12.5px;color:#687076;border-bottom:1px solid #E6E8EB}
+.sp-res .rt b{color:#11181C;border-bottom:2px solid #11181C;font-weight:500}
+.sp-res .rb{padding:10px 14px;font:12.5px/1.6 var(--mono);color:#11181C;flex:1}
+.sp-res table{border-collapse:collapse;font-size:12.5px}
+.sp-res td,.sp-res th{border:1px solid #E6E8EB;padding:4px 10px;text-align:left}
+.sp-te{display:grid;grid-template-columns:220px minmax(0,1fr);height:100%;min-height:0}
+.sp-tl{border-right:1px solid #E6E8EB;padding:14px 10px;overflow:hidden}
+.sp-tl h5{margin:0 6px 12px;font-size:15px;font-weight:600}
+.sp-tl .tb{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:#3D4449}
+.sp-tl .tb.on{background:#EEF0F2;color:#11181C;font-weight:600}
+.sp-tl .tb svg{width:15px;height:15px;color:#889096}
+.sp-grid-area{display:flex;flex-direction:column;min-width:0;min-height:0}
+.sp-tabs2{display:flex;height:40px;border-bottom:1px solid #E6E8EB;background:#F8F9FA;flex:none}
+.sp-tabs2 span{display:flex;align-items:center;gap:7px;padding:0 16px;border-right:1px solid #E6E8EB;color:#687076;font-size:13px}
+.sp-tabs2 span.on{background:#fff;color:#11181C;box-shadow:inset 0 2px 0 #11181C}
+.sp-tool{display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-bottom:1px solid #E6E8EB;flex:none}
+.sp-tool .flt{flex:1;color:#889096;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #D7DBDF;border-radius:8px;padding:3px 10px;white-space:nowrap;background:#fff}
+.sp-pill i{font-style:normal;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#E6E8EB;font-size:11px;font-weight:700}
+.sp-gw{flex:1;overflow:hidden;position:relative}
+.sp-grid{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%}
+.sp-grid th,.sp-grid td{border-bottom:1px solid #E6E8EB;border-right:1px solid #E6E8EB;padding:0 12px;height:38px;text-align:left;white-space:nowrap}
+.sp-grid th{font-weight:600}
+.sp-grid th .ty{font-weight:400;color:#889096;margin-left:6px}
+.sp-grid th svg{width:14px;height:14px;vertical-align:-2px;margin-right:4px}
+.sp-grid .pk{color:#249361}.sp-grid .fk{color:#3D74BC}
+.sp-grid td.ck,.sp-grid th.ck{width:40px;padding:0;text-align:center}
+.sp-grid td.ck span,.sp-grid th.ck span{display:inline-block;width:14px;height:14px;border:1px solid #C1C8CD;border-radius:4px}
+.sp-grid .mono{font:12px var(--mono);color:#3D4449}
+.sp-grid .null{color:#B0B7BC}
+.sp-grid tr.new td{animation:newrow 2.4s ease}
+@keyframes newrow{0%,45%{background:#C9F2DC}100%{background:transparent}}
+.sp-empty{padding:30px;text-align:center;color:#687076}
+.sp-foot{display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-top:1px solid #E6E8EB;color:#3D4449;flex:none}
+.sp-foot .dd{margin-left:auto;display:inline-flex;border:1px solid #D7DBDF;border-radius:8px;padding:2px;background:#F1F3F5}
+.sp-foot .dd span{padding:3px 12px;border-radius:6px;color:#687076}
+.sp-foot .dd span.on{background:#fff;color:#11181C;font-weight:600}
+.pop{position:absolute;z-index:6;background:#fff;border:1px solid #D7DBDF;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,.18);padding:12px 14px;font-size:13px;line-height:1.6}
+.pop b{display:block;margin-bottom:4px}
+.pop .pol{border:1px solid #E6E8EB;border-radius:6px;padding:6px 10px;margin-top:6px}
+.pop .pol small{display:block;color:#687076}
+.menu{position:absolute;z-index:6;background:#fff;border:1px solid #D7DBDF;border-radius:8px;box-shadow:0 12px 28px rgba(0,0,0,.18);padding:4px;min-width:220px}
+.menu div{padding:7px 12px;border-radius:6px;display:flex;gap:10px}
+.menu div.sel{background:#F1F3F5}
+.modal{position:absolute;z-index:7;left:50%;top:60px;transform:translateX(-50%);width:380px;background:#fff;border:1px solid #D7DBDF;border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal h4{margin:0;padding:14px 16px;border-bottom:1px solid #E6E8EB;font-size:15px}
+.modal .mb{padding:14px 16px;display:grid;gap:10px}
+.modal label{display:grid;gap:4px;font-size:12.5px;color:#687076}
+.modal .cb{display:flex;gap:8px;align-items:center;color:#11181C}
+.modal .cb span{width:16px;height:16px;border-radius:4px;background:#11181C;color:#fff;display:grid;place-items:center;font-size:11px}
+.users{width:100%;border-collapse:collapse;font-size:13px}
+.users th,.users td{border-bottom:1px solid #E6E8EB;padding:8px 12px;text-align:left}
+.users th{color:#687076;font-weight:500}
+.tg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;align-items:center;padding:12px 16px;border-top:1px solid #E6E8EB}
+.tg:first-child{border-top:0}
+.tg b{font-weight:500}
+.tg small{color:#687076;font-size:12px}
+.tg em{grid-column:1/-1;font-style:normal;color:#1D4ED8;font-size:12.5px}
+.sw{width:36px;height:20px;border-radius:999px;background:#D7DBDF;position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:#3ECF8E}
+.sw.on::after{left:18px}
+.keybox{display:flex;align-items:center;gap:8px}
+.keybox code{font:12px var(--mono);background:#F1F3F5;border:1px solid #E6E8EB;border-radius:999px;padding:4px 12px;color:#11181C}
+.copy{width:28px;height:28px;border:1px solid #D7DBDF;border-radius:50%;display:grid;place-items:center;background:#fff}
+.copy svg{width:14px;height:14px}
+.copied{color:#249361;font-weight:600;font-size:12px}
+.clip{position:absolute;left:12px;bottom:12px;z-index:8;background:#11181C;color:#fff;border-radius:10px;padding:8px 12px;font:12px/1.6 var(--font);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.clip b{display:block;font-size:11px;color:#9BA1A6}
+.clip span{display:block}
+.clip span.off{color:#687076}
+
+.gpt{display:grid;grid-template-columns:210px minmax(0,1fr);height:100%;background:#fff;color:#0D0D0D;font-family:system-ui,"Noto Sans TC",sans-serif}
+.gpt-side{background:#F9F9F9;border-right:1px solid #ECECEC;padding:14px 10px;display:flex;flex-direction:column;gap:1px;font-size:13.5px}
+.gpt-side .lg{font-size:18px;font-weight:600;margin:0 8px 12px}
+.gpt-side a{padding:6px 10px;border-radius:8px}
+.gpt-side .me{margin-top:auto;display:flex;gap:10px;align-items:center;padding:6px 8px;line-height:1.3}
+.gpt-side .me i{width:30px;height:30px;border-radius:50%;background:#F5C518;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+.gpt-main{min-width:0;overflow:hidden;padding:12px 22px;display:flex;flex-direction:column;gap:8px}
+.gpt-cols{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;min-height:0}
+.gpt-fname{display:inline-block;background:#ECECEC;border-radius:6px;padding:0 9px;font:700 12.5px/1.8 var(--mono);margin:0 0 5px}
+.gpt-block{background:#F3F3F3;border-radius:14px;overflow:hidden;margin-bottom:8px;border:2px solid transparent;transition:border-color .3s}
+.gpt-block.seen{border-color:#10A37F}
+.gpt-bh{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:12.5px;color:#0D0D0D}
+.gpt-bh .acts{margin-left:auto;display:flex;gap:12px;align-items:center}
+.gpt-bh .cpy{display:inline-flex;align-items:center;gap:4px;border-radius:6px;padding:3px 6px;white-space:nowrap}
+.gpt-bh .cpy.done{color:#10A37F;font-weight:600}
+.gpt-code{padding:0 14px 10px;font:11.5px/1.55 Consolas,var(--mono);white-space:pre;color:#1d1d1d;overflow:hidden}
+.gpt-code .htag{color:#1F4FBF}.gpt-code .at{color:#B25A00}.gpt-code .st{color:#0E7A3A}.gpt-code .kw{color:#8A2BE2}.gpt-code .cm{color:#8E8E8E}
+.gpt-code .ref{border-radius:3px}
+.gpt-code .ref.on{background:#FFF3C9;outline:2px solid #F2B705}
+.gnote{border:2px solid #F2B705;background:#FFF8DD;border-radius:10px;padding:7px 12px;font:13px/1.6 var(--font);color:#11181C;flex:none}
+.gnote b{color:#8A6400}
+.split{display:grid;grid-template-columns:40% 60%;height:100%}
+.gpt-compact{background:#fff;color:#0D0D0D;padding:10px 14px;overflow:hidden;border-right:3px solid #11181C;display:flex;flex-direction:column;gap:4px}
+.gpt-mini{font:600 15px system-ui;margin-bottom:2px}
+.gpt-compact .gnote{font-size:12.5px;padding:6px 10px;margin-bottom:4px}
+.gpt-compact .gpt-block{margin-bottom:4px}
+.vs-newin{display:inline-block;min-width:120px;border:1px solid #0078D4;background:#252526;padding:0 6px;color:#E7E7E7}
+.st-grid{display:grid;grid-template-columns:minmax(0,1fr) 290px;grid-template-rows:minmax(0,1fr);height:100%;min-height:0}
+.st-right{border-left:1px solid #E6E8EB;padding:12px;display:flex;flex-direction:column;gap:10px;background:#FCFCFD;overflow:hidden}
+.st-cap{font-size:11.5px;color:#889096;font-weight:600}
+.st-tbl{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border:1px solid #E6E8EB;transition:box-shadow .25s}
+.st-tbl th,.st-tbl td{border-bottom:1px solid #E6E8EB;padding:6px 8px;text-align:left}
+.st-tbl th{font-weight:600}
+.st-tbl.all{box-shadow:0 0 0 3px #3ECF8E}
+.st-tbl .hc{background:#FFF3C9}
+.st-tbl tr.hr td{background:#FFF3C9}
+.st-tbl td.flip b{display:inline-block;animation:flip .9s ease}
+@keyframes flip{0%{transform:rotateX(90deg);color:#249361}100%{transform:none;color:#249361}}
+.st-note{border:2px solid #F2B705;background:#FFF8DD;border-radius:10px;padding:10px 12px;font:13px/1.65 var(--font);color:#11181C;flex:1}
+.st-note .warn{color:#C2433F;font-weight:700}
+.sp-ed .cl{display:block;border-radius:4px;white-space:pre}
+.sp-ed .cl.on{background:#FFF3C9;box-shadow:inset 3px 0 0 #F2B705}
+.sp-sub a{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fdesc{margin:12px 4px 0;border:2px solid #F2B705;background:#FFF8DD;border-radius:10px;padding:9px 10px;font:12.5px/1.6 var(--font);color:#11181C}
+.fdesc b{display:block;color:#8A6400}
+.sp-res .rb{overflow:hidden}
+.sp-res td,.sp-res th{white-space:nowrap}
+.chat{flex:1;overflow-y:auto;min-height:0;padding:6px 26px 8px;scrollbar-width:thin}
+.chat-empty{margin:auto;text-align:center;font-size:24px;font-weight:600;color:#0D0D0D}
+.chat-empty small{font-size:15px;color:#8E8E8E;font-weight:400}
+.bub-u{margin:4px 0 14px auto;width:fit-content;max-width:78%;background:#F4F4F4;border-radius:18px;padding:9px 15px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;animation:in2 .3s}
+.bub-a{margin:0 0 16px;font-size:13px;line-height:1.7;animation:in2 .3s}
+.bub-a h4{margin:10px 0 4px;font-size:14px}
+.bub-a ul,.bub-a ol{margin:2px 0 8px;padding-left:22px}
+.bub-a.thinking{color:#8E8E8E}
+.bub-a .gpt-block{margin:2px 0 12px}
+.bub-a .gpt-fname{margin-top:4px}
+.gcard{border-radius:10px;padding:4px 8px;margin:4px -8px}
+.gtab{border-collapse:collapse;font-size:12.5px;margin:4px 0 6px}
+.gtab td,.gtab th{border:1px solid #E5E5E5;padding:5px 10px;text-align:left}
+.gsm{margin:0 0 10px;color:#5D5D5D;font-size:12.5px}
+.gpt-code .add{background:#DFF5E8;border-radius:3px}
+.composer .draft{flex:1;max-height:58px;overflow:hidden;white-space:pre-wrap;color:#0D0D0D;font-size:12px;line-height:1.55}
+.sendb{width:32px;height:32px;border-radius:50%;background:#0D0D0D;color:#fff;display:grid;place-items:center;flex:none;font-weight:700}
+.sendb.dis{background:#D9D9D9}
+.bub-a .pill{display:inline-block;background:#ECECEC;border-radius:6px;padding:0 8px;font:700 12px/1.8 var(--mono);margin:2px 4px 2px 0}
+@keyframes in2{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.pchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12.5px;padding:0 20px;flex:none}
+.pchips b{font-size:12px;color:#5D5D5D;margin-right:2px}
+.pchip{border:1.5px solid #10A37F;color:#0B7A5E;border-radius:999px;padding:3px 11px;font-weight:600;background:#fff;white-space:nowrap}
+.pchip.used{background:#E7F6F1}
+.composer{border:1px solid #E5E5E5;border-radius:24px;padding:10px 16px;margin:0 20px 4px;color:#8E8E8E;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.07);font-size:14px;flex:none}
+.quizscr{height:100%;background:#F7F7F8;padding:20px 40px;display:flex;flex-direction:column;gap:12px;font-family:system-ui,"Noto Sans TC",sans-serif;color:#0D0D0D;overflow:hidden}
+.qz-head{display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.qz-head b{font-size:18px}
+.qz-code{background:#fff;border:1px solid #E5E5E5}
+.qz-code .gpt-code{font-size:14px;padding:6px 18px 16px}
+.qz-ans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.qz-ans button{font:700 16px system-ui,"Noto Sans TC";padding:14px 0;border-radius:12px;border:2px solid #D9D9D9;background:#fff;cursor:pointer;color:#0D0D0D}
+.qz-ans button:hover{border-color:#10A37F}
+.qz-ans button.no{border-color:#C2433F;background:#FBE4E3;animation:nudge .4s}
+.qz-fb{margin:0;font-size:14px;color:#5D5D5D}
+.qz-fb.bad{color:#C2433F;font-weight:700}
+.qz-done{margin:30px auto 10px;text-align:center;font-size:22px;font-weight:700}
+.qz-done small{display:block;font-size:14px;font-weight:400;color:#5D5D5D;margin-top:8px}
+.gpt-unit{margin:4px 0 14px}
+.gpt-tz{border-radius:10px;padding:2px 2px 0}
+.gpt-tz .gpt-fname{margin:0 0 6px}
+.gpt-bh-top{background:#F3F3F3;border-radius:14px 14px 0 0;padding:9px 14px 6px}
+.gpt-body{background:#F3F3F3;border-radius:0 0 14px 14px;overflow:hidden}
+.gpt-tz.seen .gpt-fname{background:#D7F2E8;color:#0B6B53}
+.gpt-tz.seen .gpt-bh-top{box-shadow:inset 0 2px 0 #10A37F,inset 2px 0 0 #10A37F,inset -2px 0 0 #10A37F}
+.idgrid{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px}
+.idgrid .chat{padding:4px 8px 8px 4px}
+.idtab{border:1px solid #E5E5E5;border-radius:12px;padding:12px;font-size:12.5px;align-self:start;background:#FAFAFA}
+.idtab>b{display:block;font-size:14px;margin-bottom:8px}
+.idtab table{width:100%;border-collapse:collapse}
+.idtab th,.idtab td{border-bottom:1px solid #E5E5E5;padding:6px 4px;text-align:left;vertical-align:top;line-height:1.45}
+.idtab th{font-size:11.5px;color:#6E6E6E;font-weight:600}
+.idtab td{color:#B0B0B0}
+.idtab tr.on td{color:#0D0D0D;animation:in2 .3s}
+.idtab code{font:700 12px var(--mono);background:#ECECEC;border-radius:4px;padding:0 5px}
+.idtab p{margin:10px 0 0;color:#5D5D5D;line-height:1.6}
+.byline{display:inline-block;margin:10px 0 0;padding:6px 14px;border-radius:8px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--teal);font-weight:700;font-size:1rem;color:var(--navy)}
+.auth3{margin:0 0 6px;font-size:.8rem;color:var(--ink-3);text-align:right}
+.auth2{font-weight:700;color:var(--ink-2)}
+.pnote{grid-column:1/-1;padding:10px 14px;border:2px solid var(--hi);background:var(--hi-soft);border-radius:10px;font-size:.98rem;line-height:1.7}
+.pnote b{color:inherit}
+.pextra{grid-column:1/-1;overflow-x:auto}
+.idt{width:100%;border-collapse:collapse;font-size:.92rem;background:var(--surface)}
+.idt th,.idt td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+.idt th{background:var(--surface-2);font-size:.82rem;color:var(--ink-2)}
+.idt td{color:var(--ink-3)}
+.idt tr.on td{color:var(--ink);font-weight:700}
+.idt code{font-family:var(--mono);background:var(--surface-2);padding:1px 6px;border-radius:4px}
+/* realistic ChatGPT */
+.cg{display:grid;grid-template-columns:232px minmax(0,1fr);height:100%;background:#fff;color:#0D0D0D;font-family:"Segoe UI",system-ui,"Noto Sans TC",sans-serif}
+.cg svg{width:19px;height:19px}
+.cg-side{background:#F9F9F9;border-right:1px solid #EDEDED;display:flex;flex-direction:column;padding:10px 8px;font-size:14px;min-height:0}
+.cg-top{display:flex;align-items:center;gap:8px;padding:6px 8px 16px;color:#5D5D5D}
+.cg-top b{font-size:19px;font-weight:600;color:#0D0D0D}
+.cg-top .cg-sp{flex:1}
+.cv2{color:#8F8F8F}
+.cg-item{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px;color:#0D0D0D}
+.cg-sec{display:flex;justify-content:space-between;align-items:center;color:#8F8F8F;padding:18px 10px 4px;font-size:13.5px}
+.cg-user{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 8px}
+.cg-user i{width:32px;height:32px;border-radius:50%;background:#F4C430;color:#5A4500;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+.cg-user span{line-height:1.25;font-size:14px}.cg-user small{display:block;color:#8F8F8F;font-size:12px}
+.cg-main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0}
+.cg-head{display:flex;justify-content:flex-end;gap:20px;align-items:center;height:50px;padding:0 20px;font-size:14px;flex:none}
+.cg-hb{display:flex;align-items:center;gap:6px}
+.cg-chat{flex:1;overflow-y:auto;min-height:0;scrollbar-width:thin}
+.cg-col{max-width:700px;margin:0 auto;padding:4px 30px 56px}
+.cg-empty{margin:120px 0;text-align:center;font-size:26px;font-weight:500}
+.cg-u{margin:12px 0 24px auto;width:fit-content;max-width:76%;background:#F4F4F4;border-radius:22px;padding:10px 18px;font-size:14px;line-height:1.7;white-space:pre-wrap;animation:in2 .3s}
+.cg-a{font-size:14.5px;line-height:1.8;margin-bottom:24px;animation:in2 .3s}
+.cg-a h4{font-size:15.5px;margin:16px 0 4px}
+.cg-a ul,.cg-a ol{margin:4px 0 10px;padding-left:24px}
+.cg-card{border-radius:10px;padding:2px 6px;margin:2px -6px}
+.cg-tab{border-collapse:collapse;font-size:13.5px;margin:6px 0 8px}
+.cg-tab td,.cg-tab th{border:1px solid #E5E5E5;padding:6px 12px;text-align:left}
+.cg-tz{border-radius:12px;padding:2px 0 0;margin-top:14px}
+.cg-fn{display:inline-block;background:#ECECEC;border-radius:6px;padding:0 9px;font:700 14px/1.9 Consolas,var(--mono);margin:0 0 12px}
+.cg-blk-h{display:flex;align-items:center;gap:10px;background:#F0F0F0;border-radius:26px 26px 0 0;padding:15px 24px 6px;font-size:15px}
+.cg-blk-h .ics{margin-left:auto;display:flex;gap:16px;align-items:center}
+.cg-cp{display:inline-grid;place-items:center;border-radius:6px}
+.cg-cp.done{color:#10A37F}
+.cg-blk-b{background:#F0F0F0;border-radius:0 0 26px 26px;padding:6px 24px 18px;max-height:240px;overflow:auto;font:13px/1.95 Consolas,"JetBrains Mono",monospace;white-space:pre;color:#1F1F1F;margin-bottom:8px;scrollbar-width:thin}
+.cg-blk-b.short{max-height:150px}
+.ck{color:#B4235E}.cv{color:#6F42C1}.cs{color:#2E7D32}.ct{color:#2557C9}.ca{color:#B0581A}.cn{color:#B4235E}.cc{color:#8E8E8E}
+.cg-blk-b .kw{color:#2557C9}.cg-blk-b .cm{color:#8E8E8E}.cg-blk-b .st{color:#2E7D32}
+.cg-blk-b .ref{display:inline-block;min-width:100%;border-radius:3px}
+.cg-blk-b .ref.on{background:#FFF3C9;outline:2px solid #F2B705;border-radius:3px}
+.cg-tz.seen .cg-fn{background:#D7F2E8;color:#0B6B53}
+.cg-down{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;background:#fff;border:1px solid #E3E3E3;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.cg-comp{margin:0 auto 12px;width:min(700px,calc(100% - 40px));border:1px solid #E3E3E3;border-radius:28px;padding:9px 10px 9px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,.06);flex:none;background:#fff;color:#5D5D5D}
+.cg-plus{font-size:22px;color:#0D0D0D;line-height:1}
+.cg-comp .cg-ph{color:#8F8F8F;font-size:15px;flex:1}
+.cg-comp .draft{flex:1;max-height:60px;overflow:hidden;white-space:pre-wrap;font-size:13px;line-height:1.55;color:#0D0D0D}
+.cg-model{color:#8F8F8F;font-size:14px;white-space:nowrap}
+.cg-send{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#3B82F6;color:#fff;flex:none}
+.cg-send.up{background:#0D0D0D}
+.cg-think{display:inline-block;width:12px;height:12px;border-radius:50%;background:#0D0D0D;animation:pulse2 1s ease-in-out infinite}
+@keyframes pulse2{50%{transform:scale(.6);opacity:.5}}
+.cgc{display:flex;flex-direction:column;min-height:0;height:100%;border-right:3px solid #11181C;background:#fff;color:#0D0D0D;font-family:"Segoe UI",system-ui,"Noto Sans TC",sans-serif}
+.cgc svg{width:17px;height:17px}
+.cgc-top{height:44px;display:flex;align-items:center;gap:6px;padding:0 16px;font-size:16px;flex:none}
+.cgc-chat{flex:1;overflow-y:auto;min-height:0}
+.cgc .cg-col{padding:0 14px 20px}
+.cgc .cg-blk-h{padding:11px 16px 4px;font-size:13.5px;border-radius:20px 20px 0 0}
+.cgc .cg-blk-b{padding:4px 16px 12px;font-size:12px;border-radius:0 0 20px 20px}
+.cgc .cg-fn{font-size:12.5px;margin-bottom:8px}
+.cgc .cg-tz{margin-top:8px}
+.sp{grid-template-rows:52px minmax(0,1fr)!important;grid-template-columns:minmax(0,1fr)}
+.sp>*{min-width:0}
+.sp-top{overflow:hidden}
+.sp-top .cr,.sp-top .conn,.sp-top .rt{flex:none}
+.sp-top{gap:9px!important;font-size:14px!important}
+.sp-top .cr{display:inline-flex;align-items:center;gap:7px;font-weight:500}
+.sp-top .cr svg{width:16px;height:16px;color:#687076}
+.sp-top .conn{display:inline-flex!important;align-items:center;gap:6px;border-radius:999px!important;padding:5px 14px!important;margin-left:8px}
+.sp-top .conn svg{width:14px;height:14px}
+.sp-top .rt{margin-left:auto;display:flex;align-items:center;gap:10px!important;color:#3D4449!important}
+.sp-top .srch{display:inline-flex;align-items:center;gap:8px;border:1px solid #DFE3E6;border-radius:999px;padding:4px 12px;color:#687076}
+.sp-top .srch svg{width:14px;height:14px}
+.sp-top .srch small{margin-left:8px;color:#889096}
+.sp-top .circ{width:30px;height:30px;border:1px solid #DFE3E6;border-radius:50%;display:grid;place-items:center;color:#3D4449;font-weight:700;font-size:13px}
+.sp-top .circ svg{width:15px;height:15px;vertical-align:0}
+.sp-top .av{width:30px;height:30px;border-radius:50%;background:#11181C}
+.sp-rail{border-right:1px solid #E6E8EB;background:#FCFCFD;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;position:relative;z-index:4}
+.sp-rail a{position:relative;width:36px;height:34px;border-radius:8px;display:grid;place-items:center;color:#687076;flex:none}
+.sp-rail a svg{width:19px;height:19px}
+.sp-rail a.on{background:#E6E8EB;color:#11181C}
+.sp-rail hr{width:28px;border:0;border-top:1px solid #E6E8EB;margin:3px 0}
+.sp-rail .odot{position:absolute;top:5px;right:7px;width:7px;height:7px;border-radius:50%;background:#F97316}
+.sp-rail-end{margin-top:auto;color:#889096}
+.sp-rail-end svg{width:17px;height:17px}
+.sp-tipr{position:absolute;left:84px;top:50%;transform:translateY(-50%);background:#11181C;color:#fff;font:500 12.5px/1.4 var(--font);padding:4px 10px;border-radius:6px;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,.2);z-index:6}
+.sp-home{padding:26px 34px;overflow:hidden}
+.sp-home .h-top{display:flex;align-items:center;gap:14px}
+.sp-home h3{margin:0;font-size:24px;font-weight:600}
+.h-st{display:inline-flex;align-items:center;gap:6px;border:1px solid #DFE3E6;border-radius:999px;padding:2px 10px;font-size:12px;color:#3D4449}
+.h-st i{width:7px;height:7px;border-radius:50%;background:#3ECF8E}
+.sp-home .sub{margin:16px 0 4px;font-size:16px;font-weight:600;color:#11181C}
+.h-p{margin:0 0 18px;color:#687076}
+.h-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:640px}
+.h-cards div{border:1px solid #E6E8EB;border-radius:10px;padding:14px;display:grid;gap:4px}
+.h-cards svg{width:18px;height:18px;color:#249361}
+.h-cards small{color:#687076}
+.sqe{display:grid;grid-template-columns:250px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100%;min-height:0}
+.sqe.col{grid-template-columns:minmax(0,1fr)}
+.sqe.col[data-right]{grid-template-columns:minmax(0,1fr) 260px}
+.sqe-side{border-right:1px solid #E6E8EB;padding:14px 12px;overflow:hidden;display:flex;flex-direction:column;gap:1px;font-size:13.5px;min-height:0}
+.sqe-side h5{margin:0 4px 12px;font-size:16px;font-weight:500}
+.sqe-srow{display:flex;gap:8px;margin-bottom:8px}
+.sqe-search{flex:1;display:flex;align-items:center;gap:8px;border:1px solid #DFE3E6;border-radius:8px;padding:5px 10px;color:#687076;min-width:0}
+.sqe-search svg{width:15px;height:15px;flex:none}
+.sqe-search span{flex:1;white-space:nowrap;overflow:hidden}
+.sqe-plus{width:32px;height:32px;border:1px solid #DFE3E6;border-radius:8px;display:grid;place-items:center;font-size:16px;flex:none}
+.sqe-sec{padding:8px 6px;color:#3D4449;letter-spacing:.08em;font-size:12.5px;font-weight:500;border-top:1px solid #EEF0F2;white-space:nowrap}
+.sqe-f{display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:6px;color:#11181C;white-space:nowrap;overflow:hidden;flex:none}
+.sqe-f span{overflow:hidden;text-overflow:ellipsis}
+.sqe-f.on{background:#EEF0F2;box-shadow:inset 2px 0 0 #11181C}
+.sqe-f svg{width:15px;height:15px;flex:none}
+.sqlb{display:inline-block;font:700 8px/1 var(--mono);border:1.5px solid currentColor;border-radius:3px;padding:2px 2px;color:#3D4449;flex:none}
+.sqe-runq{margin-top:auto;border:1px solid #DFE3E6;border-radius:8px;padding:6px;text-align:center;color:#11181C;flex:none}
+.sqe-main{display:grid;grid-template-rows:40px 44px minmax(0,1fr) 150px;min-width:0;min-height:0}
+.sqe-tabs{display:flex;align-items:stretch;border-bottom:1px solid #E6E8EB;background:#F8F9FA;overflow:hidden}
+.sqe-tabs .tg{display:grid;place-items:center;width:40px;border-right:1px solid #E6E8EB;color:#687076;flex:none}
+.sqe-tabs .tg svg{width:15px;height:15px}
+.sqe-tabs .tab{display:flex;align-items:center;gap:7px;padding:0 14px;border-right:1px solid #E6E8EB;color:#687076;max-width:180px;font-size:13px;min-width:0}
+.sqe-tabs .tab .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sqe-tabs .tab.on{background:#fff;color:#11181C;box-shadow:inset 0 2px 0 #11181C}
+.sqe-tabs .dirty{width:7px;height:7px;border-radius:50%;background:#C2410C;flex:none}
+.sqe-tabs .plus{display:grid;place-items:center;padding:0 14px;color:#687076}
+.sqe-tool{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0 12px;border-bottom:1px solid #E6E8EB;font-size:13px;color:#3D4449;overflow:hidden}
+.sqe-tool .st{color:#687076;margin-right:4px;white-space:nowrap}
+.sqe-tool .b{display:inline-flex;align-items:center;gap:6px;border:1px solid #DFE3E6;border-radius:8px;padding:4px 10px;background:#fff;white-space:nowrap}
+.sqe-tool .b svg{width:14px;height:14px}
+.sqe-tool small{color:#889096;margin-left:7px}
+.sqe-tool .run{display:inline-flex;align-items:center;border-radius:8px;padding:5px 12px;background:#249361;color:#fff;font-weight:600;white-space:nowrap}
+.sqe-tool .run small{color:#CDEFD9}
+.sqe-ed{overflow:hidden;padding:8px 0;font:13px/1.65 var(--mono);white-space:pre;position:relative;min-height:0}
+.sqe-ed .ln{display:grid;grid-template-columns:46px 1fr}
+.sqe-ed .ln i{font-style:normal;color:#2D6A8F;text-align:right;padding-right:14px}
+.sqe-ed .kw{color:#0550AE}.sqe-ed .cm{color:#6E7781}.sqe-ed .st{color:#0A7D32}
+.sqe-ed .cl{display:block;border-radius:4px;white-space:pre}
+.sqe-ed .cl.on{background:#FFF3C9;box-shadow:inset 3px 0 0 #F2B705}
+.sqe-cursor{display:inline-block;width:2px;height:16px;background:#11181C;vertical-align:-3px;animation:blink 1s steps(1) infinite}
+.sqe-empty{position:absolute;left:62px;top:40px;color:#B0B7BC;font:14px var(--font)}
+.sqe-res{border-top:1px solid #E6E8EB;display:flex;flex-direction:column;min-height:0}
+.sqe-res .rh{display:flex;align-items:center;gap:18px;padding:0 14px;height:38px;border-bottom:1px solid #E6E8EB;font-size:13.5px;color:#687076;flex:none}
+.sqe-res .rh b{color:#11181C;font-weight:500;border-bottom:2px solid #11181C;padding:9px 0}
+.sqe-res .rh .sp2{flex:1}
+.sqe-res .rb{padding:10px 14px;font:13px/1.6 var(--mono);color:#11181C;overflow:hidden}
+.sqe-res .hint{color:#889096}
+.sqe-res table{border-collapse:collapse;font:13px var(--font)}
+.sqe-res td,.sqe-res th{border:1px solid #E6E8EB;padding:3px 10px;line-height:1.45;white-space:nowrap;text-align:left}
+.sqe-res .rb{padding:8px 14px!important}
+.sqe-res th{font-weight:600}
+/* ===== Browser skin ===== */
+.br{height:100%;display:flex;flex-direction:column;background:#fff}
+.br-bar{height:40px;display:flex;align-items:center;gap:10px;padding:0 12px;background:#DEE1E6;color:#3C4043;flex:none}
+.br-url{flex:1;background:#fff;border-radius:16px;padding:4px 14px;font-size:13px;color:#202124;display:flex;gap:8px;align-items:center}
+.br-url small{background:#E8EAED;border-radius:10px;padding:0 8px;color:#5F6368}
+.br-page{flex:1;display:flex;min-height:0}
+.dt{width:46%;border-left:1px solid #CBCDD1;background:#fff;font-size:12px;display:flex;flex-direction:column}
+.dt-tabs{display:flex;gap:14px;padding:6px 10px;border-bottom:1px solid #CBCDD1;color:#5F6368}
+.dt-tabs .on{color:#1A73E8;border-bottom:2px solid #1A73E8}
+.dt-err{background:#FCEBEB;color:#C5221F;border-bottom:1px solid #F4C7C7;padding:8px 10px;line-height:1.5}
+.app{flex:1;padding:20px 26px;overflow:hidden;background:#F3F6F8;color:#1C2B39}
+.app-card{background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.app small.eb{color:#1F8A9A;font-weight:700;letter-spacing:.12em;font-size:11px}
+.app h3{margin:2px 0 4px;font-size:21px}
+.app .desc{color:#5B6B78;margin:0 0 12px;font-size:12.5px}
+.app .box{border:1px solid #DCE4EA;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:end;justify-content:space-between;margin-bottom:12px}
+.app .box label{display:grid;gap:4px;font-size:12px;color:#5B6B78;flex:1}
+.app .inp{border:1px solid #CBD5DD;border-radius:8px;padding:6px 10px;min-height:32px;background:#fff;color:#1C2B39}
+.app .abtn{border:1px solid #CBD5DD;border-radius:8px;padding:6px 12px;background:#fff;font-weight:700}
+.app .abtn.p{background:#1F8A9A;border-color:#1F8A9A;color:#fff}
+.app .okm{color:#2E8B57;font-size:12px;margin:-6px 0 10px}
+.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;margin-bottom:6px}
+.scale span{text-align:center;padding:5px 0;border-radius:6px;font-weight:800;background:#EEF2F5}
+.scale span.sel{background:#EE9442;color:#fff}
+.bands{display:grid;grid-template-columns:1fr 3fr 3fr 4fr;gap:4px;margin-bottom:12px}
+.bands span{text-align:center;color:#fff;font-weight:800;border-radius:6px;padding:5px 0;font-size:12px}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips2 span{border:1px solid #CBD5DD;border-radius:999px;padding:3px 10px;font-size:12px;background:#fff}
+.chips2 span.sel{background:#1F8A9A;color:#fff;border-color:#1F8A9A}
+.login{max-width:320px;margin:30px auto;display:grid;gap:10px}
+/* ===== GitHub skin ===== */
+.gh{height:100%;background:#0D1117;color:#E6EDF3;display:flex;flex-direction:column;font-size:13.5px}
+.gh-top{height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;background:#010409;border-bottom:1px solid #30363D;flex:none}
+.gh-top svg{width:28px;height:28px}
+.gh-top .srch{margin-left:auto;border:1px solid #30363D;border-radius:6px;padding:4px 12px;color:#7D8590}
+.gh-top .av{width:30px;height:30px;border-radius:50%;background:#30363D}
+.gh-tabs{display:flex;gap:18px;border-bottom:1px solid #30363D;padding:0 20px;height:44px;align-items:center;flex:none;color:#E6EDF3}
+.gh-tabs span{padding:10px 2px}
+.gh-tabs span.on{border-bottom:2px solid #F78166;font-weight:600}
+.gh-main{flex:1;overflow:hidden;padding:20px 30px}
+.gh-btn{display:inline-flex;align-items:center;gap:6px;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:6px;padding:5px 14px;font-weight:600}
+.gh-btn.gr{background:#21262D;border-color:#30363D;color:#C9D1D9}
+.gh-in{background:#0D1117;border:1px solid #30363D;border-radius:6px;padding:5px 10px;color:#E6EDF3;min-height:32px;display:flex;align-items:center}
+.gh-in.ok{border-color:#238636}
+.gh-link{color:#4493F8;text-decoration:underline}
+.gh-card{border:1px solid #30363D;border-radius:6px;background:#161B22;padding:14px 16px}
+.gh-qs{background:#0C2D4B;border:1px solid #1F6FEB55;border-radius:6px;padding:14px 16px}
+.gh-drop{border:1px dashed #30363D;border-radius:6px;padding:26px;text-align:center;color:#C9D1D9;background:#0D1117}
+.gh-files{border:1px solid #30363D;border-radius:6px;margin-top:10px}
+.gh-files div{padding:7px 12px;border-top:1px solid #30363D;display:flex;justify-content:space-between}
+.gh-files div:first-child{border-top:0}
+.gh-set{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px}
+.gh-set nav a{display:block;padding:6px 10px;border-radius:6px;color:#E6EDF3}
+.gh-set nav a.on{background:#1F2937;box-shadow:inset 3px 0 0 #1F6FEB}
+.gh-live{border:1px solid #30363D;border-radius:6px;padding:12px 14px;background:#161B22;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.explorer{width:270px;background:#202020;border:1px solid #3A3A3A;border-radius:8px;color:#E6E6E6;font-size:12.5px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.explorer .eh{padding:8px 12px;border-bottom:1px solid #3A3A3A;font-weight:600}
+.explorer div.f{padding:5px 12px;background:#3A4A5A33}
+/* ===== QR site ===== */
+.qrs{height:100%;background:#F4F6F6;color:#2B3A3A;display:flex;flex-direction:column}
+.qrs-top{height:44px;background:#7FA3A3;color:#fff;display:flex;align-items:center;gap:16px;padding:0 14px;font-size:13px;flex:none}
+.qrs-top b{font-size:18px}
+.qrs-body{flex:1;display:grid;grid-template-columns:300px 1fr 240px;gap:14px;padding:14px;min-height:0}
+.qrs-p{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12);align-self:start}
+.qrs-p h5{margin:0;padding:10px;background:#A8C4C4;text-align:center;font-size:15px}
+.qrs-p .pb{padding:12px;display:grid;gap:8px;font-size:12.5px}
+.qrs-p textarea{width:100%;height:64px;border:2px solid #F2B705;border-radius:6px;padding:6px;resize:none;user-select:text}
+.qrbox{background:#fff;display:grid;place-items:center;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.qrbox .qph{color:#7A8A8A}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div><p>AI 系統建構入門｜從 ChatGPT 產生程式開始，接著照簡報 p.25–44 的操作順序</p><h1>疼痛評估系統：從 ChatGPT 到上線（互動模擬）</h1><p class="byline" id="auth1"></p></div>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><p>點畫面上的<b style="color:#B07F00">黃色框框</b>，照著簡報的順序做一遍。每一步都可以按「自動示範」。</p><button class="btn ghost" type="button" id="fsBtn" aria-pressed="false">放大字級</button><button class="btn ghost" type="button" id="resetAll">從頭開始</button></div>
+  </div>
+  <div class="layout">
+    <aside class="rail" id="rail" aria-label="製作步驟"></aside>
+    <div>
+      <p class="auth3" id="auth3"></p><div class="scr-scroll"><div class="scrwrap" id="scrwrap"><div id="scr" aria-live="polite"></div><div class="hlbox" id="hl" hidden><b id="hln">1</b></div></div></div>
+      <div class="panel">
+        <h2 id="pTitle"></h2><span class="pg" id="pPage"></span>
+        <ol class="tasks" id="pTasks"></ol>
+        <div class="pnote" id="pNote" aria-live="polite" hidden></div>
+        <div class="pextra" id="pExtra" hidden></div>
+        <p class="tip" id="pTip"></p>
+        <div class="nav"><button class="btn ghost" type="button" id="bPrev">上一步</button><button class="btn ghost" type="button" id="bAuto">自動示範這一步</button><button class="btn ghost" type="button" id="bRedo">重做這一步</button><span class="sp"></span><span class="hint" id="bHint"></span><button class="btn" type="button" id="bNext">下一步</button></div>
+      </div>
+    </div>
+  </div>
+  <footer><p class="auth2" id="auth2"></p><p>畫面為模擬，帳號、網址、金鑰與資料皆為示意，實際介面可能因版本更新略有不同。</p></footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pref={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const fsBtn=$('#fsBtn');function applyFs(b){document.documentElement.classList.toggle('big',b);fsBtn.textContent=b?'恢復字級':'放大字級';fsBtn.setAttribute('aria-pressed',String(b));}
+applyFs(!!pref.get('bfs-big',false));fsBtn.addEventListener('click',()=>{const b=!document.documentElement.classList.contains('big');applyFs(b);pref.set('bfs-big',b);setTimeout(placeBox,80);});
+
+/* ---------- attribution ---------- */
+const _q=[35600, 38728, 20241, 94, 19972, 23617, 37276, 23366, 22882, 23348, 38423, 35447, 37322, 38410, 79, 20172, 23960, 26366, 25068, 20159, 24410, 128, 35936, 35492, 35778, 29882, 24296];const _hv=3367974013;
+const _d=()=>String.fromCharCode(..._q.map((c,i)=>c^((i*7+13)&255)));
+const _f=s=>{let x=2166136261;for(const ch of s){x^=ch.codePointAt(0);x=Math.imul(x,16777619)>>>0;}return x;};
+const _AU=_d();if(_f(_AU)!==_hv){document.body.innerHTML='<p style="padding:48px;font:18px sans-serif">本教材的出處資訊遭到修改，已停止運作。</p>';throw new Error('attribution');}
+const [_NM,_ORG]=_AU.split('|');
+const _L={auth1:'設計與教材｜'+_NM+'　'+_ORG,auth2:'© '+_NM+'｜'+_ORG+'　版權所有，轉載或使用請保留出處。',auth3:'互動模擬設計：'+_NM+'｜'+_ORG};
+function stampAuth(){const anchors={auth1:()=>$('.head h1'),auth2:()=>$('footer'),auth3:()=>$('.scr-scroll')};Object.entries(_L).forEach(([id,t])=>{let e=document.getElementById(id);if(!e){e=document.createElement('p');e.id=id;e.className=id==='auth1'?'byline':id;const a=anchors[id]();if(a){if(id==='auth2')a.prepend(e);else if(id==='auth1')a.after(e);else a.before(e);}}if(e.textContent!==t)e.textContent=t;const cs=getComputedStyle(e);if(cs.display==='none'||cs.visibility==='hidden'||+cs.opacity<.5)e.setAttribute('style','display:block!important;visibility:visible!important;opacity:1!important');});if(!document.title.includes(_NM))document.title='疼痛評估系統互動模擬｜'+_NM+'（'+_ORG.split(' ').slice(0,2).join(' ')+'）';}
+stampAuth();setInterval(stampAuth,1500);
+/* ---------- icons ---------- */
+const P={files:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>',search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',git:'<circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M18 11c0 4-6 3-11 6"/>',debug:'<path d="M8 6l10 6-10 6z"/>',ext:'<path d="M4 4h7v7H4zM13 13h7v7h-7zM4 13h7v7H4zM15 4l5 5-5 5-5-5z"/>',
+  newfile:'<path d="M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6"/><path d="M13 3l5 5v3"/><circle cx="17" cy="17" r="4"/><path d="M17 15v4M15 17h4"/>',newfolder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v3"/><path d="M3 7v10a2 2 0 0 0 2 2h7"/><circle cx="17" cy="17" r="4"/><path d="M17 15v4M15 17h4"/>',
+  home:'<path d="M4 11l8-7 8 7v9H4z"/>',table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',sql:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/>',db:'<ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v12c0 1.4 3 2.5 7 2.5s7-1.1 7-2.5V6M5 12c0 1.4 3 2.5 7 2.5s7-1.1 7-2.5"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',func:'<path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h4"/>',rt:'<path d="M5 3l14 8-6 2-2 6z"/>',bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11z"/>',scope:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/>',list:'<path d="M5 6h14M5 12h14M5 18h14"/>',grid:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',key:'<circle cx="7.5" cy="12" r="3.5"/><path d="M11 12h10M17 12v3M20 12v2"/>',link:'<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.6M20 4v7h-7"/>',people:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 4a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.7"/>'};
+const ic=(n,sw)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw||1.8}" stroke-linecap="round" stroke-linejoin="round">${P[n]||''}</svg>`;
+const VSLOGO='<svg viewBox="0 0 24 24" width="18" height="18"><path fill="#0078D4" d="M17 2l5 2.5v15L17 22 7.5 13.5 3.5 16.5 2 15.7V8.3l1.5-.8 4 3L17 2zm0 5.5L11.5 12 17 16.5z"/></svg>';
+const BOLT='<svg class="bolt" viewBox="0 0 24 24"><path fill="currentColor" d="M13.5 2L4 14h7l-1 8 9.5-12h-7z"/></svg>';
+const GHCAT='<svg viewBox="0 0 24 24" fill="#E6EDF3"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.4 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.2-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>';
+const FOLDER='<svg viewBox="0 0 64 54"><path fill="#E8A72B" d="M4 8a4 4 0 0 1 4-4h16l6 6h26a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/><path fill="#F6C54E" d="M4 18h56v28a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4z"/></svg>';
+const fileIc=f=>f.endsWith('.html')?'<span class="fi" style="color:#E37933">&lt;&gt;</span>':f.endsWith('.js')?'<span class="fi" style="color:#CBCB41">JS</span>':f.endsWith('.css')?'<span class="fi" style="color:#519ABA">#</span>':'<span class="fi" style="color:#9BA1A6">SQL</span>';
+
+/* ---------- constants ---------- */
+const PROJ_URL='https://abcd1234painsys.supabase.co/';const API_URL=PROJ_URL+'rest/v1/';const PUB_KEY='sb_publishable_demoKey-NotReal-123';
+const GH_USER='your-account';const SITE='https://'+GH_USER+'.github.io/PAIN_NRS/';
+const ADMIN_ID='10a73b5e-0759-4755-a49e-7a3d52c1f6e0',USER_ID='75bdcffd-27b4-4df7-9d66-2621a0c4e9b1',NURSE_ID='3f9c2b71-8d4e-4a6b-9c1d-5e7f8a9b0c12';
+const SETUP_SQL=`-- 疼痛管理系統：完整 Supabase Schema / RLS / RPC
+-- 可重複執行設計以本專案全新資料庫為主；正式環境請先備份。
+
+create extension if not exists pgcrypto;
+create schema if not exists private;
+
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
+  display_name text not null default '',
+  role text not null default 'user' check (role in ('user','admin')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.pain_records (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  case_code text not null,
+  nrs smallint not null check (nrs between 0 and 10),
+  location text not null check (char_length(location) between 1 and 100),
+  location_other text,
+  qualities text[] not null default '{}',
+  quality_other text,
+  frequency text not null check (frequency in ('持續性','間歇性','偶發性')),
+  pain_started_at timestamptz not null,
+  duration_value numeric(10,2) not null check (duration_value > 0),
+  duration_unit text not null check (duration_unit in ('分鐘','小時','天','週')),
+  notes text,
+  status text not null default 'pending_intervention' check (status in ('pending_intervention','pending_reassessment','completed')),
+  intervention_methods text[] not null default '{}',
+  intervention_content text,
+  intervention_at timestamptz,
+  intervention_by uuid references auth.users(id),
+  reassessment_nrs smallint check (reassessment_nrs between 0 and 10),
+  reassessment_notes text,
+  reassessment_at timestamptz,
+  reassessment_by uuid references auth.users(id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists pain_records_user_id_idx on public.pain_records(user_id);
+create index if not exists pain_records_status_idx on public.pain_records(status);
+create index if not exists pain_records_created_at_idx on public.pain_records(created_at desc);
+create index if not exists pain_records_user_created_idx on public.pain_records(user_id, created_at desc);
+…（後面還有索引、觸發器、RLS 權限規則與管理者函式）`;
+const ADMIN_SQL=`-- 將最早建立的 Auth 帳號設為管理者。
+-- 建議：先從前端申請第一個帳號，再執行本檔。
+with first_user as (
+  select id from auth.users order by created_at asc limit 1
+)
+update public.profiles p
+set role = 'admin', updated_at = now()
+from first_user f
+where p.id = f.id
+returning p.id, p.email, p.display_name, p.role;`;
+function hiSql(s){return s.split(/('[^'\n]*'|--[^\n]*)/).map((p,i)=>i%2?(p.startsWith('--')?`<span class="cm">${esc(p)}</span>`:`<span class="st">${esc(p)}</span>`):esc(p).replace(/\b(create|table|if|not|exists|primary|key|references|on|delete|cascade|default|check|in|null|alter|enable|row|level|security|with|as|select|from|order|by|asc|limit|update|set|where|returning|extension|schema|between|and)\b/g,'<span class="kw">$1</span>')).join('');}
+function sqlLines(s,max){const L=s.split('\n').slice(0,max||60);return L.map((l,i)=>`<div class="ln"><i>${i+1}</i><span>${hiSql(l)||' '}</span></div>`).join('');}
+
+/* ---------- ChatGPT reply & SQL files ---------- */
+const HTML_LINES=['<!DOCTYPE html>','<html lang="zh-Hant">','<head>','  <meta charset="UTF-8">','  <title>疼痛紀錄</title>','  <link rel="stylesheet" href="style.css">','</head>','<body>','<div class="box">','  <h2>疼痛紀錄</h2>','  <label>疼痛程度：<span id="score">5</span></label>','  <input id="pain" type="range" min="0" max="10" value="5">','  <textarea id="note" placeholder="疼痛部位或備註"></textarea>','  <button onclick="savePain()">送出紀錄</button>','  <hr>','  <h3>紀錄</h3>','  <div id="list"></div>','</div>','<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>','<script src="app.js"><\/script>','</body>','</html>'];
+const CSS_LINES=['body {','  font-family: Arial;','  background: #f5f5f5;','}','','.box {','  width: 400px;','  margin: 40px auto;','  background: white;','  padding: 20px;','  border-radius: 12px;','}'];
+const JS_LINES=['const SUPABASE_URL = "你的 Project URL";','const SUPABASE_KEY = "你的 Publishable Key";','','const db = supabase.createClient(','  SUPABASE_URL,','  SUPABASE_KEY',');','','const pain = document.getElementById("pain");','const score = document.getElementById("score");','','pain.oninput = () => {','  score.innerText = pain.value;','};','','// …（後面還有送出紀錄、讀取紀錄的程式）'];
+function colHtml(l){return esc(l).replace(/(&lt;\/?)([a-zA-Z!][\w-]*)/g,'$1<span class="htag">$2</span>').replace(/ ([a-z-]+)=(&quot;[^&]*&quot;)/g,' <span class="at">$1</span>=<span class="st">$2</span>');}
+function colCss(l){return esc(l).replace(/^([.#]?[a-zA-Z][\w-]*)(\s*\{)/,'<span class="kw">$1</span>$2').replace(/^(\s+)([a-z-]+):/,'$1<span class="at">$2</span>:');}
+function colJs(l){if(/^\s*\/\//.test(l))return `<span class="cm">${esc(l)}</span>`;return esc(l).replace(/(&quot;.*?&quot;)/g,'<span class="st">$1</span>').replace(/\b(const|async|function|await|return)\b/g,'<span class="kw">$1</span>');}
+function linesView(L,c){return L.map(c).join('\n');}
+function htmlView(refOn){return HTML_LINES.map((l,i)=>{const h=colHtml(l);if(i===15)return `<span class="ref ${refOn?'on':''}" data-k="b-ref">${h}</span>`;if(i===4)return `<span class="ref ${refOn?'on':''}">${h}</span>`;return h;}).join('\n');}
+function gptBlock(f,lang,code,k,seen){return `<div class="gpt-fname">${f}</div><div class="gpt-block ${seen?'seen':''}" data-k="${k}"><div class="gpt-bh"><span>&lt;/&gt;</span>${lang}<span class="acts">${ic('copy')}</span></div><div class="gpt-code">${code}</div></div>`;}
+function gpt(main,noSide){return `<div class="gpt" ${noSide?'style="grid-template-columns:1fr"':''}>${noSide?'':`<div class="gpt-side"><div class="lg">ChatGPT ⌄</div><a data-k="newchat">✎ 新對話</a><a>◷ 已排程</a><a>▥ 檔案庫</a><a>＠ 外掛程式</a><a>⋯ 探索</a><a style="margin-top:14px;color:#8E8E8E">專案 ›</a><a style="color:#8E8E8E">最近項目 ›</a><div class="me"><i>學</i><span>學員<br><small style="color:#8E8E8E">Plus</small></span></div></div>`}<div class="gpt-main">${main}</div></div>`;}
+function gptUnit(f,lang,code,k,seen){return `<div class="gpt-unit"><div class="gpt-tz ${seen?'seen':''}" data-k="${k}"><div class="gpt-fname">${f}</div><div class="gpt-bh gpt-bh-top"><span>&lt;/&gt;</span>${lang}<span class="acts">${ic('copy')}</span></div></div><div class="gpt-body"><div class="gpt-code">${code}</div></div></div>`;}
+function noteBar(){return '';}
+const SQLIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px;vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h3M7 14h5"/></svg>';
+const SQLFILES=[['01-setup.sql','01'],['02-set-first-user-admin.sql','02'],['03-check-setup.sql','03'],['04-account-diagnostics.sql','04'],['05-role-management.sql','05']];
+const FILEDESC={'03':['檢查（只看不改）','確認資料表、RLS、權限規則、觸發器、函式、欄位權限是否都到位。'],'04':['診斷（只看不改）','把登入帳號（Auth）和使用者資料（profiles）對照，看每個帳號是否都有一筆資料。下面還附了回補用的 insert。'],'05':['修改','用 Email 指定帳號，把角色改成 admin 或改回 user。']};
+const FILESQL={'03':`-- 安裝與安全檢查
+-- 1. 確認資料表與 RLS
+select 'profiles' as item, count(*)::text as value
+from public.profiles
+union all
+select 'pain_records', count(*)::text
+from public.pain_records
+union all
+select 'profiles RLS', relrowsecurity::text
+from pg_class
+where oid = 'public.profiles'::regclass
+union all
+select 'pain_records RLS', relrowsecurity::text
+from pg_class
+where oid = 'public.pain_records'::regclass;
+
+-- 2. 確認 RLS Policies …
+-- 3. 確認 Triggers …
+-- 4. 確認 Functions …
+-- 5. 確認 Table 權限 …
+-- 6. 確認欄位層級 INSERT 權限 …`,'04':`-- 帳號診斷：Auth 與 Profile 是否一一對應
+select
+  u.id,
+  u.email as auth_email,
+  u.email_confirmed_at,
+  u.created_at as auth_created_at,
+  p.email as profile_email,
+  p.display_name,
+  p.role,
+  case when p.id is null then 'MISSING_PROFILE' else 'OK' end as profile_status
+from auth.users u
+left join public.profiles p on p.id=u.id
+order by u.created_at;
+
+-- 若有 MISSING_PROFILE，可重新執行下列回補：
+insert into public.profiles (id,email,display_name,role) …`,'05':`-- 角色管理範本。請把指定 Email 改成實際帳號後，再單獨執行需要的區塊。
+
+-- A. user -> admin
+update public.profiles
+set role='admin', updated_at=now()
+where lower(email)=lower('replace-with-user@example.com')
+returning id,email,display_name,role;
+
+-- B. admin -> user（預設註解，避免誤執行）
+/* … */
+
+-- C. 查看目前角色
+select id,email,display_name,role,created_at
+from public.profiles
+order by created_at;`};
+function resTable(r){const T=(h,rows,cap)=>`<table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(rw=>`<tr>${rw.map(x=>`<td>${esc(x)}</td>`).join('')}</tr>`).join('')}</table>${cap?`<div style="margin-top:6px;color:#249361;font-family:var(--font)">${cap}</div>`:''}`;
+  const sid=x=>x.id.slice(0,13)+'…';
+  if(r==='03')return T(['item','value'],[['profiles',String(S.users.length)],['pain_records','0'],['profiles RLS','true'],['pain_records RLS','true']],'兩個 RLS 都是 true：門禁有打開。');
+  if(r==='04')return T(['auth_email','display_name','role','profile_status'],S.users.map(x=>[x.email,x.name,x.role,'OK']),'每個登入帳號都有對應的使用者資料。');
+  if(r==='A'){const n=S.users.find(x=>x.email==='nurse@example.com');return n?T(['id','email','display_name','role'],[[sid(n),n.email,n.name,n.role]]):'';}
+  if(r==='C')return T(['id','email','display_name','role','created_at'],S.users.map(x=>[sid(x),x.email,x.name,x.role,x.at]));
+  return '<span style="color:#889096">Click Run to execute your query.</span>';}
+
+/* ---------- Part A: code types ---------- */
+const SQL_SHOW=['-- 疼痛管理系統：完整 Supabase Schema / RLS / RPC','create extension if not exists pgcrypto;','','create table if not exists public.profiles (','  id uuid primary key references auth.users(id) on delete cascade,','  email text not null,','  role text not null default \'user\' check (role in (\'user\',\'admin\')),','  …',');','','alter table public.profiles enable row level security;','-- …（後面還有 pain_records 資料表與權限規則）'];
+function htmlRefView(L,withK){return L.map(l=>{const h=colHtml(l);if(l.includes('src="app.js"'))return `<span class="ref" ${withK?'data-k="b-ref"':''}>${h}</span>`;if(l.includes('href="style.css"'))return `<span class="ref">${h}</span>`;return h;}).join('\n');}
+const QUIZ=[
+ {code:colHtml('<button onclick="savePain()">送出紀錄</button>'),a:'HTML',hint:'有沒有看到 <標籤>？',why:'有 &lt;button&gt;…&lt;/button&gt; 這樣成對的標籤，就是 HTML，放在 index.html。'},
+ {code:['.box {','  padding: 20px;','  border-radius: 12px;','}'].map(colCss).join('\n'),a:'CSS',hint:'看看有沒有「{ 屬性: 值; }」。',why:'「名稱 { 屬性: 值; }」就是 CSS，放在 style.css。'},
+ {code:['pain.oninput = () => {','  score.innerText = pain.value;','};'].map(colJs).join('\n'),a:'JavaScript',hint:'看看有沒有 () => 和「=」。',why:'有 () =&gt;、= 和 .value，是 JavaScript 的動作，放在 app.js。'},
+ {code:["update public.profiles","set role='admin'","where lower(email)=lower('nurse@example.com');"].map(hiSql).join('\n'),a:'SQL',hint:'update、set、where 這些英文指令，是對資料庫下的。',why:'update、set、where 是 SQL，對資料庫下指令，要貼到 Supabase 的 SQL Editor。'}];
+
+/* ---------- realistic ChatGPT ---------- */
+Object.assign(P,{code2:'<path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/>',wrap:'<path d="M4 12h11M11 8l4 4-4 4M20 5v14"/>',check:'<path d="M5 12l5 5 9-10"/>',play:'<path d="M8 5l11 7-11 7z"/>',edit:'<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M9 15l.8-3.2L16 5.6l2.4 2.4-6.2 6.2z"/>',clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',books:'<path d="M4 4.5h4v15H4zM10 4.5h4v15h-4zM16 6l3-1 3.5 14-3 1z"/>',at:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="M15.2 12v1.4a2.4 2.4 0 0 0 4.8 0V12"/>',dots:'<circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="19" cy="12" r="1.4" fill="currentColor"/>',panel:'<rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/>',mic:'<rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',share:'<path d="M12 15V4.5M8 8.5l4-4 4 4M5 13.5v5.5h14v-5.5"/>',wave:'<path d="M7 10v4M10.5 7v10M14 9v6M17.5 11v2"/>',arrowup:'<path d="M12 19V5M6 11l6-6 6 6"/>',arrowdown:'<path d="M12 5v14M6 13l6 6 6-6"/>',list:'<path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01"/>'});
+function tokStr(l,fn){return esc(l).split(/(&quot;.*?&quot;)/).map((p,i)=>i%2?`<span class="cs">${p}</span>`:fn(p)).join('');}
+function cgJs(l){if(/^\s*\/\//.test(l))return `<span class="cc">${esc(l)}</span>`;return tokStr(l,p=>p.replace(/(=&gt;|=)/g,'<span class="ck">$1</span>').replace(/\b(const|let|async|function|await|return)\b/g,'<span class="ck">$1</span>').replace(/\b(SUPABASE_URL|SUPABASE_KEY|db|supabase|pain|score|note|document|records|r)\b/g,'<span class="cv">$1</span>'));}
+function cgHtml(l){return esc(l).split(/(&quot;.*?&quot;)/).map((p,i)=>i%2?`<span class="cs">${p}</span>`:p.replace(/ ([a-z-]+)=$/,' <span class="ca">$1</span>=').replace(/(&lt;\/?[\w!-]+|\/?&gt;)/g,'<span class="ct">$1</span>')).join('');}
+function cgCss(l){const e=esc(l);let m=e.match(/^(\s*)([.#]?[\w-]+)(\s*\{)$/);if(m)return m[1]+`<span class="${m[2].startsWith('.')?'ca':'ct'}">${m[2]}</span>`+m[3];m=e.match(/^(\s+)([\w-]+)(:\s*)(.*?)(;?)$/);if(m){const v=m[4].replace(/\b(\d+)(px|%|em|rem)?/g,(a,n,u)=>`<span class="cn">${n}${u||''}</span>`).replace(/\b(auto|white|Arial)\b/g,'<span class="ca">$1</span>');return m[1]+m[2]+m[3]+v+m[5];}return e;}
+function cgSql(l){return hiSql(l);}
+function htmlBody(L,withK){return L.map(l=>{const h=cgHtml(l);if(withK&&l.includes('src="app.js"'))return `<span class="ref" data-k="b-ref">${h}</span>`;if(withK&&l.includes('href="style.css"'))return `<span class="ref">${h}</span>`;return h;}).join('\n');}
+function cgBlock(f,lang,body,k,o){o=o||{};return `<div class="cg-tz" ${k?`data-k="${k}"`:''}><div class="cg-fn">${f}</div><div class="cg-blk-h">${ic('code2')}<span>${lang}</span><span class="ics">${ic('wrap')}<span class="cg-cp ${o.copied?'done':''}" ${o.copyK?`data-k="${o.copyK}"`:''}>${o.copied?ic('check'):ic('copy')}</span>${lang==='HTML'?ic('play'):''}</span></div></div><div class="cg-blk-b ${o.short?'short':''}">${body}</div>`;}
+const HTML_V1=HTML_LINES.filter(l=>!l.includes('supabase-js'));
+const JS_V1=['const pain = document.getElementById("pain");','const score = document.getElementById("score");','const records = [];','','pain.oninput = () => {','  score.innerText = pain.value;','};','','function savePain() {','  const note = document.getElementById("note").value;','  records.push({ score: pain.value, note: note });','  document.getElementById("list").innerHTML =','    records.map(r => "<p>NRS " + r.score + "：" + r.note + "</p>").join("");','}'];
+const PROMPTS={
+ p00:{l:'Prompt 00 開場約定',t:'你好，我是完全不會寫程式的初學者，請你當我的工程團隊。\n接下來我會一步一步告訴你我的需求，請遵守以下約定：\n1. 全程使用繁體中文，用白話解釋，少用專有名詞。\n2. 我只會「複製、貼上、存檔、打開網頁」，所以每次都要給我完整的檔案內容，不要叫我找第幾行、自己插入或組合程式碼。\n3. 之後每次修改，也請直接給我修改後的「完整檔案」。\n4. 技術只用最基本的：HTML、CSS、JavaScript。不要使用 React、Vue、Node.js 等需要額外安裝的工具。\n5. 我們會一步一步來，每一步只做我要求的範圍，不要超前進度。\n6. 測試一律使用假資料，不可以放任何真實病人或個人資料。'},
+ p01:{l:'Prompt 01 說目的',t:'我想做一個【簡易疼痛管理系統】，給【一般使用者（病人）和管理者（護理人員）】使用。\n請先聽我把需求說完，先不要規劃、也不要寫程式。'},
+ p02:{l:'Prompt 02 七個問題',t:'以下是我的需求，請幫我整理成一份「簡易需求規格書」，用條列的方式寫，讓完全不懂程式的人也看得懂，整理好先給我確認。\n1. 誰要使用？【一般使用者（病人）、管理者（護理人員）】\n2. 使用者要做什麼？【登入、填寫疼痛評估、查看自己的紀錄】\n3. 要記錄什麼資料？【NRS 疼痛分數 0～10、疼痛部位、疼痛性質、備註】\n4. 管理者要看什麼？【所有人的紀錄、統計資料】\n5. 需不需要登入？【需要。從網頁申請的帳號都是一般使用者；管理者由我在後台自己設定】\n6. 資料要不要保存？【要。下次登入還要看得到】\n7. 大概有哪些畫面？【登入頁、使用者頁（填評估、看自己的紀錄）、管理者頁（看全部紀錄與統計）】'},
+ p03:{l:'Prompt 03 先規劃',t:'請根據上面的需求規格書，幫我規劃：\n1. 這個系統需要哪些頁面？\n2. 每個頁面上有哪些按鈕和欄位？\n3. 需要保存哪些資料？用簡單的表格列出來就好。\n先不要寫任何程式。\n規劃好之後用白話說明給我聽，等我確認再進下一步。'},
+ p04:{l:'Prompt 04 先做畫面',t:'規劃沒問題，請開始做第一版：\n1. 用 HTML、CSS、JavaScript 做出可以實際操作的畫面。\n2. 先不要連接資料庫。資料暫時存在瀏覽器就好，重新整理後不見沒關係，這一版只要「看得到、點得動」。\n3. 畫面請做得【乾淨、專業：白色為主、搭配藍綠色，像正式的醫療系統】。不要使用付費字型和外部圖片。\n4. 給我每一個檔案的完整內容，並告訴我：檔案要怎麼命名、放在哪個資料夾、怎麼打開來測試。'},
+ pq:{l:'請用白話解釋',t:'請用白話解釋給完全不懂程式的人聽：app.js 在做什麼？'},
+ p05:{l:'Prompt 05 接上資料庫',t:'畫面我測試過沒問題了。現在請幫我接上 Supabase，讓系統「記得住」：\n1. Supabase 負責：申請帳號、登入、保存資料、判斷角色。\n2. 權限規則一句話：「一般使用者只能看到、新增自己的紀錄；管理者可以看到所有人的紀錄。」請在資料庫層真正做到這件事，不能只是把按鈕藏起來。\n3. 從網頁申請的帳號一律是一般使用者。請教我怎麼在 Supabase 後台，把某個帳號改成管理者。\n4. 網頁裡只能放可以公開的連線資訊（Project URL 和公開的 key）。任何標示 secret 的金鑰，都不可以出現在網頁裡。\n5. 請給我三樣東西：\n- 修改後的完整檔案\n- 需要在 Supabase 執行的完整 SQL（我會整段複製貼上）\n- 一份一步一步的設定教學：到哪個畫面、點哪個按鈕、貼哪一段，照著做就能完成。'}};
+const REPLY={
+ p00:'好的！我會遵守這些約定：<ul><li>全程繁體中文、用白話說明</li><li>每次都給你<b>完整的檔案</b>，不會叫你自己改某一行</li><li>只用 HTML、CSS、JavaScript</li><li>一步一步來，只做你要求的範圍；測試只用假資料</li></ul>請告訴我你想做什麼。',
+ p01:'了解！你想做一個<b>簡易疼痛管理系統</b>，使用者是病人和護理人員。我先不規劃、也不寫程式，請繼續把需求告訴我。',
+ p02:'<div data-k="spec" class="cg-card"><h4>簡易需求規格書：疼痛管理系統</h4><b>使用者</b><ul><li>一般使用者（病人）：登入、填寫疼痛評估、查看自己的紀錄</li><li>管理者（護理人員）：查看所有人的紀錄與統計</li></ul><b>要記錄的資料</b><ul><li>NRS 疼痛分數（0～10）、疼痛部位、疼痛性質、備註</li></ul><b>登入與保存</b><ul><li>需要登入；從網頁申請的帳號都是一般使用者，管理者由後台設定</li><li>資料要保存，下次登入還看得到</li></ul><b>畫面</b><ul><li>登入頁、使用者頁、管理者頁</li></ul></div>請確認內容是否正確，有要修改的地方直接告訴我。',
+ p03:'<h4>系統規劃</h4><b>1. 頁面、按鈕和欄位</b><ul><li>登入頁：Email、密碼、「登入」「申請帳號」按鈕</li><li>使用者頁：疼痛評估表單（NRS 0～10、部位、性質、備註、「送出」）＋我的紀錄</li><li>管理者頁：全部紀錄、平均 NRS 等統計</li></ul><div data-k="plan" class="cg-card"><b>2. 需要保存的資料</b><table class="cg-tab"><tr><th>資料表</th><th>存什麼</th></tr><tr><td>profiles（使用者）</td><td>帳號編號、Email、名稱、角色（一般使用者／管理者）</td></tr><tr><td>pain_records（疼痛評估）</td><td>屬於誰、NRS、部位、性質、備註、建立時間</td></tr></table></div>確認沒問題，我再開始做畫面。',
+ p04:'第一版完成！一共三個檔案，請分別建立，並貼上完整內容。'+cgBlock('index.html','HTML',htmlBody(HTML_V1,false),'')+cgBlock('style.css','CSS',CSS_LINES.map(cgCss).join('\n'),'')+cgBlock('app.js','JavaScript',JS_V1.map(cgJs).join('\n'),'')+'<div data-k="howto" class="cg-card"><b>怎麼建立與測試</b><ol><li>在桌面建立一個英文名稱的資料夾，例如 NRS</li><li>在資料夾裡建立 index.html、style.css、app.js 三個檔案，分別貼上上面的完整內容並存檔</li><li>用瀏覽器打開 index.html 就能測試（這一版資料存在瀏覽器，重新整理會不見）</li></ol></div>',
+ pq:'沒問題！用醫院來比喻：<ul><li><b>index.html</b> 是病房的格局：有哪些桌子、表單、按鈕</li><li><b>style.css</b> 是裝潢：顏色、大小、排列</li><li><b>app.js</b> 是<b>傳話的護理師</b>：你按下「送出紀錄」，它就把分數和備註收起來，記在一張清單上，再顯示在畫面下方</li></ul>目前這張清單放在瀏覽器裡，所以重新整理就不見了。下一步接上 Supabase，資料就會存進雲端，下次登入還看得到。',
+ p05:'好的！以下是三樣東西：<h4>1. 修改後的完整檔案（請整個取代原本的內容）</h4>'+cgBlock('index.html','HTML',htmlBody(HTML_LINES,true),'t-html')+cgBlock('style.css','CSS',CSS_LINES.map(cgCss).join('\n'),'t-css')+cgBlock('app.js','JavaScript',JS_LINES.map(cgJs).join('\n'),'t-js')+'<h4>2. 需要在 Supabase 執行的完整 SQL</h4>'+cgBlock('01-setup.sql','SQL',SQL_SHOW.map(cgSql).join('\n'),'t-sql')+'<h4>3. 一步一步的設定教學</h4><ol data-k="b5-steps" class="cg-card"><li>到 supabase.com 建立新專案</li><li>到 SQL Editor 貼上上面的 SQL，按 Run</li><li>到 Authentication 建立測試帳號，再執行設定管理者的 SQL</li><li>複製 Project URL 與 Publishable key，貼進 app.js 最上面</li><li>啟動本機伺服器，用 http://localhost:5000 打開測試</li></ol>'};
+const NOTES={p00:'<b>AI 答應了約定。</b>之後如果它沒給完整檔案，就提醒它「請給我完整檔案」。',p01:'<b>第一句話說目的，不是說技術。</b>',p02:'<b>七個問題的答案，就是需求的雛形。</b>看完 AI 整理的規格書，確認有沒有誤會。',p03:'<b>先規劃，不寫程式。</b>看得懂、確認了，再進下一步。',p04:'<b>AI 給了第一版程式。</b>回覆很長，往下捲動，一段一段看。',pq:'<b>看不懂就問。</b>這句話可以一直用。',p05:'<b>AI 給了三樣東西。</b>往下捲動，一樣一樣看。'};
+function addMsg(id,r,h){if(!S.chat.some(m=>m.id===id))S.chat.push({id,r,h});}
+function cgChat(u){return S.chat.map(m=>m.r==='u'?`<div class="cg-u">${m.h}</div>`:`<div class="cg-a">${m.h}</div>`).join('')+(u.thinking?'<div class="cg-a"><span class="cg-think"></span></div>':'');}
+function cgUI(u,inner){return `<div class="cg"><aside class="cg-side"><div class="cg-top"><b>ChatGPT</b><span class="cv2">⌄</span><span class="cg-sp"></span>${ic('search')}${ic('panel')}</div><a class="cg-item" data-k="newchat">${ic('edit')}新對話</a><a class="cg-item">${ic('clock')}已排程</a><a class="cg-item">${ic('books')}檔案庫</a><a class="cg-item">${ic('at')}外掛程式</a><a class="cg-item">${ic('dots')}探索</a><div class="cg-sec">專案 ›</div><div class="cg-sec">最近項目 ›<span>${ic('dots')}</span></div><div class="cg-user"><i>學</i><span>學員<small>Plus</small></span></div></aside>
+<main class="cg-main"><div class="cg-head"><span class="cg-hb">${ic('share')}分享</span>${ic('dots')}${ic('list')}</div><div class="chat cg-chat"><div class="cg-col">${inner||'<div class="cg-empty">今天有什麼計畫？</div>'}</div></div>${S.chat.length>2?`<span class="cg-down">${ic('arrowdown')}</span>`:''}
+<div class="cg-comp" data-k="comp"><span class="cg-plus">＋</span>${u.draft?`<span class="draft">${esc(PROMPTS[u.draft].t)}</span>`:'<span class="cg-ph">問問 ChatGPT</span>'}<span class="cg-model">Medium ⌄</span>${ic('mic')}<span class="cg-send ${u.draft?'up':''}" data-k="send">${u.draft?ic('arrowup'):ic('wave')}</span></div></main></div>`;}
+function oneShot(keys,pre,label,note){return{k:'comp',t:label,anim:async u=>{for(const key of keys){u.draft=key;draw();await sleep(RM?40:550);u.draft=null;addMsg(pre+'u'+key,'u',esc(PROMPTS[key].t));u.thinking=true;draw();await sleep(RM?60:900);u.thinking=false;addMsg(pre+'a'+key,'a',REPLY[key]);draw();await sleep(RM?40:350);}},fx:u=>{u.draft=null;keys.forEach(key=>{addMsg(pre+'u'+key,'u',esc(PROMPTS[key].t));addMsg(pre+'a'+key,'a',REPLY[key]);S.used[key]=true;});u.note=note;}};}
+function promptTasks(key,pre){return[{k:'comp',t:`點輸入框，貼上「${PROMPTS[key].l}」（Ctrl＋V）`,fx:u=>{u.draft=key;u.note='Prompt 貼進輸入框了。【】裡的內容，可以換成你自己的系統。';}},
+ {k:'send',t:'按送出（↑），等 AI 回覆',anim:async u=>{u.draft=null;addMsg(pre+'u'+key,'u',esc(PROMPTS[key].t));u.thinking=true;draw();await sleep(RM?80:1100);u.thinking=false;},fx:u=>{u.draft=null;addMsg(pre+'u'+key,'u',esc(PROMPTS[key].t));addMsg(pre+'a'+key,'a',REPLY[key]);S.used[key]=true;u.note=NOTES[key];}}];}
+function cgCompact(u,items){return `<div class="cgc"><div class="cgc-top"><b>ChatGPT</b><span class="cv2">⌄</span></div><div class="chat cgc-chat"><div class="cg-col">${items.map(([f,lang,L,fn,k])=>cgBlock(f,lang,L.slice(0,5).map(fn).join('\n')+'\n<span class="cc">…</span>','',{copyK:k,copied:u.copied&&u.copied[f],short:true})).join('')}</div></div></div>`;}
+
+/* ---------- state ---------- */
+function fresh(){return{chat:[],used:{},zh:false,folder:'新資料夾',inVS:false,files:[],saved:false,proj:'',pw:false,pwCopied:false,created:false,sqlRun:false,users:[],admin:false,confirm:true,authSaved:false,clipKey:false,clipUrl:false,codeUrl:false,codeKey:false,codeSaved:false,server:false,rows:[],repo:false,repoName:'',repoDesc:'',uploaded:false,committed:false,pages:false,qr:false};}
+let S=fresh();
+
+/* ---------- frames ---------- */
+function vs(o){const zh=S.zh;return `<div class="vs"><div class="vs-title">${VSLOGO}<span>≡</span><span>←　→</span><div class="vs-cmd">${esc(o.title||(S.inVS?'NRS':(zh?'搜尋':'Search')))}</div><span>□　─　✕</span></div>
+<div class="vs-body ${o.side?'':'noside'}"><div class="vs-act">${['files','search','git','debug','ext'].map(n=>ic(n)).join('')}</div>${o.side?`<div class="vs-side">${o.side}</div>`:''}
+<div class="vs-editor">${o.tabs?`<div class="vs-tabs">${o.tabs}</div>`:''}<div class="vs-content">${o.editor||''}</div>${o.panel?`<div class="vs-panel">${o.panel}</div>`:''}${o.inner||''}</div></div>
+<div class="vs-status"><span>⊗ 0　⚠ 0</span><span style="margin-left:auto">${o.status||'UTF-8　CRLF　{ } HTML'}</span></div>${o.overlay||''}</div>`;}
+function explorer(){const zh=S.zh;return `<h6>${zh?'檔案總管':'EXPLORER'}</h6><div class="vs-sec">› ${zh?'已開啟的編輯器':'OPEN EDITORS'}</div><div class="vs-folder"><span>⌄ NRS</span><span class="acts"><span class="vs-ic" data-k="newfile" title="新增檔案">${ic('newfile')}</span><span class="vs-ic">${ic('newfolder')}</span><span class="vs-ic">${ic('refresh')}</span></span></div>${S.files.map(f=>`<div class="vs-file" data-f="${f}">${fileIc(f)}${f}</div>`).join('')}`;}
+const NAV=[['Project Overview','home','home'],['Table Editor','table','table'],['SQL Editor','sql','sql'],'-',['Database','db'],['Authentication','lock','auth'],['Storage','box'],['Edge Functions','func'],['Realtime','rt'],'-',['Advisors','bulb'],['Observability','scope'],['Logs','list'],['Integrations','grid','int'],'-',['Project Settings','gear','gear']];
+function curK(){const t=STEPS[cur]&&STEPS[cur].tasks[ti];return t?t.k:'';}
+const UD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;color:#889096"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>';
+function sp(active,main,crumb){const created=S.created;const ck=curK();
+ const top=`<div class="sp-top">${BOLT}<span class="sep">/</span><span class="cr">${ic('people')}my-org's Project<span class="bdg">FREE</span>${UD}</span><span class="sep">/</span>${created?`<span class="cr">${ic('box')}PAIN_SYSTEM${UD}</span><span class="sep">/</span><span class="cr">main<span class="prod">PRODUCTION</span>${UD}</span><span class="conn">${ic('link')}Connect</span>`:`<span class="cr">${crumb||'New project'}</span>`}<span class="rt"><span>Feedback</span><span class="srch">${ic('search')}Search…<small>Ctrl K</small></span><span class="circ">?</span><span class="circ">${ic('bulb')}</span><span class="circ">${ic('sql')}</span><span class="av"></span></span></div>`;
+ const rail=created?`<nav class="sp-rail">${NAV.map(n=>n==='-'?'<hr>':`<a ${n[2]?`data-k="nav-${n[2]}"`:''} class="${n[2]===active?'on':''}" title="${n[0]}">${ic(n[1])}${n[1]==='bulb'?'<i class="odot"></i>':''}${ck==='nav-'+n[2]?`<span class="sp-tipr">${n[0]}</span>`:''}</a>`).join('')}<span class="sp-rail-end">${ic('panel')}</span></nav>`:'';
+ return `<div class="sp">${top}<div class="sp-body" style="grid-template-columns:${created?'52px ':''}minmax(0,1fr)">${rail}<div class="sp-main">${main}</div></div></div>`;}
+const SQLB='<span class="sqlb">SQL</span>';
+function sqlEd(o){const side=o.collapsed?'':`<div class="sqe-side"><h5>SQL Editor</h5><div class="sqe-srow"><div class="sqe-search">${ic('search')}<span>Search queries…</span><b>⌄</b></div><span class="sqe-plus">＋</span></div>
+ <div class="sqe-sec">›　SHARED</div><div class="sqe-sec">›　FAVORITES</div><div class="sqe-sec">⌄　PRIVATE (${o.files.length})</div>${o.files.map(f=>`<a class="sqe-f ${f.on?'on':''}" ${f.k?`data-k="${f.k}"`:''}>${SQLB}<span>${f.name}</span></a>`).join('')}
+ <div class="sqe-sec">›　LOGS</div><div class="sqe-sec">⌄　REFERENCE</div><a class="sqe-f">${ic('list')}<span>Templates</span></a><div class="sqe-runq">View running queries</div></div>`;
+ return `<div class="sqe ${o.collapsed?'col':''}" ${o.right?'data-right="1"':''}>${side}<div class="sqe-main" ${o.resH?`style="grid-template-rows:40px 44px minmax(0,1fr) ${o.resH}px"`:''}><div class="sqe-tabs"><span class="tg">${ic('panel')}</span>${o.tabs.map(t=>`<span class="tab ${t.on?'on':''}">${SQLB}<span class="tn">${t.name}</span>${t.dirty?'<i class="dirty"></i>':''}</span>`).join('')}<span class="plus">＋</span></div>
+ <div class="sqe-tool"><span class="st">${o.status||'Autosave enabled'}</span><span class="b">⋮</span><span class="b">${ic('db')}Database ⌄</span><span class="b">Save<small>Ctrl S</small></span><span class="run" ${o.runK?`data-k="${o.runK}"`:''}>Run<small>Ctrl ↵</small></span></div>
+ <div class="sqe-ed" ${o.edK?`data-k="${o.edK}"`:''}>${o.code}</div>
+ <div class="sqe-res" ${o.resK?`data-k="${o.resK}"`:''}><div class="rh"><b>Results</b><span>Chart</span><span class="sp2"></span>${o.rows?`<span>${o.rows}</span>`:''}<span>Export ⌄</span></div><div class="rb">${o.res}</div></div></div>${o.right||''}</div>`;}
+const NOTRUN='<span class="hint">Click Run to execute your query.</span>';
+const FN={'01':'01-setup.sql','02':'02-set-first-user-admin.sql','03':'03-check-setup.sql','04':'04-account-diagnostics.sql','05':'05-role-management.sql'};
+function spMini(main){return `<div class="sp"><div class="sp-top">${BOLT}<span class="sep">/</span><span>⬡ <b style="font-weight:600">PAIN_SYSTEM</b></span><span class="prod">PRODUCTION</span><span class="rt"><span>Table Editor</span></span></div><div class="sp-main">${main}</div></div>`;}
+function clipTray(){if(!S.clipKey&&!S.clipUrl)return'';return `<div class="clip"><b>剪貼簿（已複製）</b><span class="${S.clipUrl?'':'off'}">${S.clipUrl?'✓':'○'} API URL</span><span class="${S.clipKey?'':'off'}">${S.clipKey?'✓':'○'} Publishable key</span></div>`;}
+function gh(main,tabs){return `<div class="gh"><div class="gh-top"><span>≡</span>${GHCAT}<b>${S.repo?`${GH_USER} / ${S.repoName||'PAIN_NRS'}`:'Dashboard'}</b><span class="srch">Type / to search</span><span class="av"></span></div>${tabs||''}<div class="gh-main">${main}</div></div>`;}
+function ghRepoTabs(on){return `<div class="gh-tabs">${['Code','Issues','Pull requests','Actions','Projects','Wiki','Security','Insights','Settings'].map(t=>`<span class="${t===on?'on':''}" ${t==='Settings'?'data-k="ghset"':''}>${t}</span>`).join('')}</div>`;}
+function br(url,page,label){return `<div class="br"><div class="br-bar"><span>←　→　⟳</span><div class="br-url">${label?`<small>${label}</small>`:''}<span>${esc(url)}</span></div><span>☆　⋮</span></div><div class="br-page">${page}</div></div>`;}
+function painApp(u,showOk){const sel=u.nrs!=null?u.nrs:-1;return `<div class="app"><div class="app-card"><small class="eb">PAIN ASSESSMENT</small><h3>數字等級量表 (Numerical Rating Scale, NRS)</h3><p class="desc">請選擇最符合目前疼痛程度的數字，0 表示完全不痛，10 表示可以想像的最嚴重疼痛。</p>
+<div class="box"><label>個案代碼<b style="color:#1C2B39;font-size:12.5px">請輸入 6～10 碼數字代碼</b><span class="inp"><span class="typing">${u.code?'123456':''}</span></span></label><span class="abtn" data-k="code">確認代碼</span></div>${u.code?'<p class="okm">個案代碼確認成功，現在可以填寫評估。</p>':''}
+<div class="scale">${Array.from({length:11},(_,i)=>`<span ${i===4?'data-k="n4"':''} class="${i===sel?'sel':''}">${i}</span>`).join('')}</div>
+<div class="bands"><span style="background:#8DB04A">0 不痛</span><span style="background:#4A7FC1">1–3 輕微痛</span><span style="background:#EE9442">4–6 中度疼痛</span><span style="background:#C84B47">7–10 嚴重疼痛</span></div>
+<div data-k="qual"><div class="chips2"><b style="font-size:12px">部位</b><span class="${u.loc?'sel':''}">腹部</span><span>腰部</span><span>頭部</span><b style="font-size:12px;margin-left:10px">性質</b><span class="${u.loc?'sel':''}">刺痛</span><span class="${u.loc?'sel':''}">痠痛</span><span>鈍痛</span><span>絞痛</span></div><div class="chips2" style="margin-top:6px"><b style="font-size:12px">頻率</b><span class="${u.loc?'sel':''}">間歇性</span><span>持續性</span><span>偶發性</span><b style="font-size:12px;margin-left:10px">持續</b><span class="${u.loc?'sel':''}">2 小時</span><span>1 天</span></div></div>
+<div style="margin-top:12px;display:flex;justify-content:flex-end"><span class="abtn p" data-k="send">送出評估</span></div></div></div>`;}
+
+/* ---------- Supabase table editor ---------- */
+const COLS={pain_records:[['id','uuid','pk'],['user_id','uuid','fk'],['case_code','text'],['nrs','int2'],['location','text'],['location_other','text'],['qualities','text[]'],['quality_other','text'],['frequency','text'],['pain_started_at','timestamptz'],['duration_value','numeric'],['duration_unit','text'],['notes','text'],['status','text'],['created_at','timestamptz']],
+  profiles:[['id','uuid','pk'],['email','text'],['display_name','text'],['role','text'],['created_at','timestamptz']]};
+function teGrid(t,rows,newId,pick){let cols=COLS[t];let idx=cols.map((c,i)=>i);if(pick){idx=pick.map(n=>cols.findIndex(c=>c[0]===n));cols=idx.map(i=>COLS[t][i]);rows=rows.map(r=>idx.map(i=>i===0&&r[0]?'…'+r[0].slice(-5):r[i]));}return `<table class="sp-grid"><thead><tr><th class="ck"><span></span></th>${cols.map(([n,ty,k])=>`<th>${k==='pk'?`<span class="pk">${ic('key',2)}</span>`:k==='fk'?`<span class="fk">${ic('link',2)}</span>`:''}${n}<span class="ty">${ty}</span></th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr class="${newId&&(r[0]===newId||(pick&&r[0]==='…'+newId.slice(-5)))?'new':''}"><td class="ck"><span></span></td>${r.map((v,i)=>v==null?'<td class="null">NULL</td>':cols[i][1]==='uuid'?`<td class="mono">${esc(v.length>10?v.slice(0,18)+'…':v)}</td>`:`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>${rows.length?'':'<div class="sp-empty">This table is empty</div>'}`;}
+function profRows(){return S.users.map(u=>[u.id,u.email,u.name,u.role,u.at]);}
+function tableEditor(u){const t=u.t;const rls=t==='pain_records'?2:1;return `<div class="sp-te"><div class="sp-tl"><h5>Table Editor</h5><div class="sp-box">schema <b style="color:#11181C">public</b></div><div class="sp-box">＋ New table</div><div class="sp-box" style="margin-bottom:12px">Search tables…</div>
+<div class="tb ${t==='pain_records'?'on':''}" data-k="tb-pain">${ic('table')}pain_records</div><div class="tb ${t==='profiles'?'on':''}" data-k="tb-prof">${ic('table')}profiles</div></div>
+<div class="sp-grid-area">${t?`<div class="sp-tabs2"><span class="on">${ic('table')}public.${t}</span><span>＋</span></div><div class="sp-tool"><span class="flt">🔍　Filter by ${t==='pain_records'?'id, user_id, case_code':'id, email, display_name'}… or ask AI</span><span class="sp-pill">☰ Sort</span><span class="sp-pill" data-k="rls"><i>${rls}</i>RLS ${rls>1?'policies':'policy'}</span><span class="sp-pill">Role postgres ⌄</span><span class="sp-pill" data-k="refresh">${ic('refresh')}</span><span class="sp-btn g">⌄ Insert</span></div>
+<div class="sp-gw">${teGrid(t,t==='pain_records'?(u.showRows===false?[]:S.rows):profRows(),u.newId)}${u.rlsPop?`<div class="pop" style="right:150px;top:6px;width:330px"><b>pain_records 的 2 條 RLS 規則</b><div class="pol">pain_records_select_owner_or_admin<small>查詢：只看自己的（user_id = 登入者），管理者看全部</small></div><div class="pol">pain_records_insert_owner<small>新增：只能新增自己的，狀態必須是「待處置」</small></div></div>`:''}</div>
+<div class="sp-foot"><span>←　Page</span><span class="sp-pill">1</span><span>of 1　→</span><span class="sp-pill">100 rows</span><span>${(t==='pain_records'?(u.showRows===false?0:S.rows.length):S.users.length)} records</span><span class="dd"><span class="on">Data</span><span>Definition</span></span></div>`:'<div class="sp-empty" style="margin-top:120px">Select a table from the left to view its data</div>'}</div></div>`;}
+
+/* ---------- steps ---------- */
+const STEPS=[
+/* G0 */{ph:'A',t:'在 ChatGPT 用 Prompt 讓 AI 產生程式',pg:'Prompt 00–05',tip:'照順序一段一段貼 Prompt，每一段都等 AI 回覆、確認沒問題再貼下一段。第 4 段做完，要先到 VS Code 測試畫面，沒問題才貼第 5 段。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[{k:'newchat',t:'按左上方「新對話」：全程用同一個對話視窗',fx:u=>{S.chat=[];u.note='<b>一個系統，一個對話。</b>從頭到尾都用這個對話視窗，AI 才記得前面的需求。';}},
+  oneShot(['p00'],'g','點輸入框，貼上 Prompt 00「開場約定」，送出','<b>先說好規則。</b>每次開新對話，都先貼第 0 段。'),
+  oneShot(['p01','p02','p03'],'g','依序貼上 Prompt 01～03：說目的、整理規格、先規劃','<b>一次只貼一段。</b>每段都等 AI 回覆、看懂、確認，再貼下一段。'),
+  oneShot(['p04'],'g','貼上 Prompt 04：先做出看得到的畫面','<b>AI 給了第一版程式。</b>第一版先不接資料庫，資料存在瀏覽器。'),
+  oneShot(['p05'],'g','畫面測試沒問題後，貼上 Prompt 05：接上 Supabase','<b>AI 給了接上資料庫的完整程式。</b>下一步：看每一段程式的標題，分辨它是什麼。')]},
+/* H1 */{ph:'A',focusDone:'b-ref',t:'從標題辨識 ChatGPT 給的程式',pg:'Prompt 05 的回覆',tip:'每一段程式都有「標題」：上方的檔名（例如 app.js），和框框左上角的語言標籤（例如 JavaScript）。看標題就知道它是哪一種程式、要放到哪裡，不用先看懂程式內容。',
+ render:u=>cgUI(u,cgChat(u)),
+ after:u=>{Object.keys(u.seen||{}).forEach(k=>{const e=$(`[data-k="${k}"]`,$('#scr'));if(e)e.classList.add('seen');});if(u.refOn)$$('.cg-blk-b .ref',$('#scr')).forEach(e=>e.classList.add('on'));},
+ panel:u=>{const seen=u.seen||{};const rows=[['t-html','index.html','HTML','VS Code 新增 index.html'],['t-css','style.css','CSS','VS Code 新增 style.css'],['t-js','app.js','JavaScript','VS Code 新增 app.js'],['t-sql','01-setup.sql','SQL','貼到 Supabase SQL Editor 執行']];
+  return `<table class="idt"><tr><th>標題（檔名）</th><th>語言標籤</th><th>拿去哪裡</th></tr>${rows.map(([k,f,l,w])=>seen[k]?`<tr class="on"><td><code>${f}</code></td><td>${l}</td><td>${w}</td></tr>`:'<tr><td>？</td><td>？</td><td>？</td></tr>').join('')}</table>`;},
+ tasks:[{k:'t-html',t:'第一段的標題：index.html ＋ HTML',fx:u=>{u.seen=Object.assign({},u.seen,{'t-html':1});u.note='<b>標題 index.html，標籤 HTML。</b>這段是 HTML（網頁骨架）。到 VS Code 新增檔案時，檔名就打 <b>index.html</b>。';}},
+  {k:'t-css',t:'往下第二段的標題：style.css ＋ CSS',fx:u=>{u.seen=Object.assign({},u.seen,{'t-css':1});u.note='<b>標題 style.css，標籤 CSS。</b>這段是 CSS（外觀：顏色、大小、間距）。檔名打 <b>style.css</b>。';}},
+  {k:'t-js',t:'第三段的標題：app.js ＋ JavaScript',fx:u=>{u.seen=Object.assign({},u.seen,{'t-js':1});u.note='<b>標題 app.js，標籤 JavaScript。</b>這段是 JavaScript（按下按鈕後做什麼、把資料送到 Supabase）。檔名打 <b>app.js</b>。';}},
+  {k:'t-sql',t:'第四段的標題：01-setup.sql ＋ SQL',fx:u=>{u.seen=Object.assign({},u.seen,{'t-sql':1});u.note='<b>標題 01-setup.sql，標籤 SQL。</b>這段是 SQL（資料庫指令），<b>不在 VS Code 執行</b>，要貼到 Supabase 的 SQL Editor；也可以存一份到資料夾留底。';}},
+  {k:'b-ref',t:'看 index.html 裡的 src="app.js"：為什麼檔名要和標題一模一樣',fx:u=>{u.refOn=true;u.note='<b>這一行就是答案。</b>網頁打開時，index.html 會照 src="app.js" 去找 app.js，照上面的 href="style.css" 去找 style.css。所以 VS Code 裡的檔名要和標題一模一樣；打成 script.js 或 styles.css，網頁就找不到，按鈕和樣式都會失效。';}}]},
+/* A1 */{ph:'B',t:'VS Code：設定中文介面',pg:'p.25',tip:'第一次打開 VS Code 是英文介面。換成中文後，之後的按鈕名稱就會和簡報一樣。',
+ render:u=>vs({editor:`<div class="vs-empty"><svg class="vs-wm" viewBox="0 0 24 24"><path fill="currentColor" d="M17 2l5 2.5v15L17 22 7.5 13.5 3.5 16.5 2 15.7V8.3l1.5-.8 4 3L17 2zm0 5.5L11.5 12 17 16.5z"/></svg>${u.pal?'':`<div class="vs-keys" data-k="keys"><kbd>Ctrl</kbd>＋<kbd>Shift</kbd>＋<kbd>P</kbd><span>打開命令選擇區</span></div>`}</div>`,
+  overlay:u.pal?`<div class="vs-pal"><div class="vs-pin" data-k="palin">&gt;<span class="typing">${u.typed?'Language':''}</span><span class="vs-caret"></span></div>${!u.typed?[['Developer: Reload Window','Ctrl+R'],['File: New File…','Ctrl+Alt+Win+N'],['Preferences: Open Settings (UI)','Ctrl+,'],['View: Toggle Terminal','Ctrl+`'],['Help: Welcome','']].map(([a,b],i)=>`<div class="vs-pi ${i===0?'sel':''}"><span>${a}</span><small>${b}</small></div>`).join(''):!u.langs?[['Change <b>Language</b> Mode','Ctrl+K M'],['Chat: Manage <b>Language</b> Model Access…',''],['Clear Display <b>Language</b> Preference',''],['Configure Display <b>Language</b>','','cfg'],['Preferences: Configure <b>Language</b> Specific Settings…',''],['Preferences: <b>Language</b> Extensions','']].map(([a,b,k],i)=>`<div class="vs-pi ${i===0?'sel':''}" ${k?`data-k="${k}"`:''}><span>${a}</span><small>${b}</small></div>`).join(''):[['English (en)','目前的語言'],['中文(繁體) (zh-tw)','','zh'],['中文(简体) (zh-cn)',''],['日本語 (ja)','']].map(([a,b,k])=>`<div class="vs-pi" ${k?`data-k="${k}"`:''}><span>${a}</span><small>${b}</small></div>`).join('')}</div>`:'',status:S.zh?'已切換為中文（繁體）':'English'}),
+ tasks:[{k:'keys',t:'按 Ctrl＋Shift＋P：上方出現命令選擇區，裡面已經有一個「>」',fx:u=>{u.pal=true;u.note='命令選擇區打開了。輸入框裡的 <b>&gt;</b> 代表「要找指令」，不要刪掉它。';}},{k:'palin',t:'在「>」後面輸入 Language',anim:async()=>{await typeIn('palin','Language',110);},fx:u=>{u.typed=true;u.note='輸入 <b>&gt;Language</b> 後，下面只剩下和「語言」有關的指令，<b>Language</b> 會用藍色標出來。';}},{k:'cfg',t:'點「Configure Display Language」',fx:u=>{u.langs=true;u.note='Configure Display Language＝設定介面要顯示的語言。';}},{k:'zh',t:'選「中文(繁體)」，重新啟動 VS Code',fx:u=>{u.pal=false;S.zh=true;u.note='重新啟動後，VS Code 的選單就會變成中文。';}}]},
+/* A2 */{ph:'B',t:'建立資料夾，拖進 VS Code',pg:'p.26',tip:'資料夾名稱一定要用英文（例如 NRS），中文或空格之後容易出錯。',
+ render:u=>`<div class="desk"><div>${vs({editor:S.inVS?`<div class="vs-welcome"><h3>NRS</h3><p>資料夾已開啟</p></div>`:`<div class="vs-welcome"><h3>Visual Studio Code</h3><p>編輯已進化</p><h5>開始</h5><a>新增檔案…</a><a>開啟檔案…</a><a>開啟資料夾…</a><h5 style="margin-top:20px">最近使用</h5><a>pain-system</a></div>`,side:S.inVS?explorer():''})}</div>
+  <div class="desk-r"><div class="fold" data-k="folder">${FOLDER}<span class="typing">${esc(S.folder)}</span></div>${S.inVS?'':'<div class="desk-note">建立新資料夾後改英文檔名<br>拖曳至 VS Code 軟體</div>'}</div></div>`,
+ tasks:[{k:'folder',t:'在桌面建立新資料夾，改成英文名稱「NRS」',anim:async()=>{await typeIn('folder','NRS');},fx:()=>{S.folder='NRS';}},
+  {k:'folder',t:'把 NRS 資料夾拖曳到 VS Code 視窗裡',anim:async()=>{await fly($('[data-k="folder"]'),$('.vs-content'),'NRS','#B07F00');},fx:()=>{S.inVS=true;}}]},
+/* A4 */{ph:'B',t:'在 VS Code 建立檔案，貼上程式',pg:'p.27',tip:'一個檔案三個動作：在 ChatGPT 按「複製」→ 在 VS Code 按「新增檔案」輸入檔名 → 貼上並存檔。重複三次。',
+ render:u=>{const act=u.active||S.files[S.files.length-1];const src={'index.html':HTML_LINES,'style.css':CSS_LINES,'app.js':JS_LINES}[act];const col={'index.html':colHtml,'style.css':colCss,'app.js':colJs}[act];const pasted=u.pasted&&u.pasted[act];
+  return `<div class="split">${cgCompact(u,[['index.html','HTML',HTML_LINES,cgHtml,'cp-html'],['style.css','CSS',CSS_LINES,cgCss,'cp-css'],['app.js','JavaScript',JS_LINES,cgJs,'cp-js']])}
+  <div>${vs({side:explorer()+(u.pending?`<div class="vs-file" data-k="newrow"><span class="vs-newin"><span class="typing"></span></span></div>`:''),tabs:S.files.map(f=>`<div class="vs-tab ${f===act?'on':''}">${fileIc(f)}${f}</div>`).join(''),
+   editor:!S.files.length?`<div class="vs-welcome"><h3>NRS</h3><p>按左邊的「新增檔案」</p></div>`:pasted?`<div class="vs-code">${src.slice(0,18).map((l,i)=>`<div class="vs-ln"><i>${i+1}</i><span>${col(l).replace(/class="(htag|kw)"/g,'class="k"').replace(/class="at"/g,'class="v"').replace(/class="st"/g,'class="s"').replace(/class="cm"/g,'class="c"')||' '}</span></div>`).join('')}</div>`:`<div class="vs-code"><div class="vs-ln cur"><i>1</i><span style="color:#6E7681;font-style:italic">產生程式碼 (Ctrl+I) 或 選取語言 (Ctrl+K M)…</span></div></div>${u.clip===act?`<span class="vs-btn" data-k="paste" style="position:absolute;left:30px;top:60px">貼上 <span class="kc">Ctrl</span>＋<span class="kc">V</span>，存檔 <span class="kc">Ctrl</span>＋<span class="kc">S</span></span>`:''}`,status:'第 1 行，第 1 欄　UTF-8'})}</div></div>`;},
+ tasks:[].concat(...[['index.html','cp-html','HTML'],['style.css','cp-css','CSS'],['app.js','cp-js','JavaScript']].map(([f,k,l],i)=>[
+  {k:k,t:`在 ChatGPT 按 ${f} 那一段右上角的「複製」`,fx:u=>{u.clip=f;u.copied=Object.assign({},u.copied,{[f]:true});u.note=i===0?'<b>用「複製」鍵</b>，一次複製整段，不要用滑鼠自己拖選，很容易漏掉開頭或結尾。':`已複製 <b>${f}</b>（${l}）。`;}},
+  {k:'newfile',t:`在 VS Code 按「新增檔案」，輸入 ${f}`,anim:async u=>{u.pending=true;draw();await typeIn('newrow',f,70);},fx:u=>{u.pending=false;if(!S.files.includes(f))S.files.push(f);u.active=f;u.note=`檔名打 <b>${f}</b>，要和 ChatGPT 上方寫的一模一樣。`;}},
+  {k:'paste',t:`在 ${f} 裡貼上，按 Ctrl＋S 存檔`,fx:u=>{u.pasted=Object.assign({},u.pasted,{[f]:true});u.active=f;if(i===2)S.saved=true;u.note=i===2?'<b>三個檔案都好了。</b>分頁上的白點 ● 消失，就代表存好了。':`${f} 存好了。接著做下一個檔案。`;}}]))},
+/* A5 */{ph:'B',t:'SQL 存一份到資料夾留底',pg:'p.42',tip:'SQL 不在 VS Code 執行，真正執行是在 Supabase 的 SQL Editor（C 段）。存一份到資料夾，之後換電腦、重建資料庫都找得到，上傳 GitHub 時也會一起帶上。',
+ render:u=>{const pasted=u.pasted;return `<div class="split">${cgCompact(u,[['01-setup.sql','SQL',SQL_SHOW,cgSql,'cp-sql']])}
+  <div>${vs({side:explorer()+(u.pending?`<div class="vs-file" data-k="newrow"><span class="vs-newin"><span class="typing"></span></span></div>`:''),tabs:S.files.map(f=>`<div class="vs-tab ${f===(S.files.includes('01-setup.sql')?'01-setup.sql':'app.js')?'on':''}">${fileIc(f)}${f}</div>`).join(''),
+   editor:pasted?`<div class="vs-code">${SETUP_SQL.split('\n').slice(0,18).map((l,i)=>`<div class="vs-ln"><i>${i+1}</i><span>${hiSql(l).replace(/class="kw"/g,'class="k"').replace(/class="cm"/g,'class="c"').replace(/class="st"/g,'class="s"')||' '}</span></div>`).join('')}</div>`:S.files.includes('01-setup.sql')?`<div class="vs-code"><div class="vs-ln cur"><i>1</i><span style="color:#6E7681;font-style:italic">（空白檔案）</span></div></div>${u.copied&&u.copied['01-setup.sql']?'<span class="vs-btn" data-k="paste" style="position:absolute;left:30px;top:60px">貼上 <span class="kc">Ctrl</span>＋<span class="kc">V</span>，存檔 <span class="kc">Ctrl</span>＋<span class="kc">S</span></span>':''}`:`<div class="vs-code">${JS_LINES.slice(0,8).map((l,i)=>`<div class="vs-ln"><i>${i+1}</i><span>${colJs(l).replace(/class="kw"/g,'class="k"').replace(/class="st"/g,'class="s"').replace(/class="cm"/g,'class="c"')||' '}</span></div>`).join('')}</div>`,status:'SQL　UTF-8'})}</div></div>`;},
+ tasks:[{k:'cp-sql',t:'在 ChatGPT 按 01-setup.sql 那一段的「複製」',fx:u=>{u.copied={'01-setup.sql':true};u.note='已複製 SQL。';}},
+  {k:'newfile',t:'在 VS Code 按「新增檔案」，輸入 01-setup.sql',anim:async u=>{u.pending=true;draw();await typeIn('newrow','01-setup.sql',70);},fx:u=>{u.pending=false;if(!S.files.includes('01-setup.sql'))S.files.push('01-setup.sql');u.note='副檔名是 <b>.sql</b>，VS Code 會用 SQL 的顏色顯示。';}},
+  {k:'paste',t:'貼上，按 Ctrl＋S 存檔（只是留底，不在這裡執行）',fx:u=>{u.pasted=true;u.note='<b>存好了，但它不會在這裡執行。</b>下一段 C 到 Supabase 的 SQL Editor 貼上、按 Run，資料表才會建立。';}}]},
+/* B4 */{ph:'C',t:'Supabase：建立新專案',pg:'p.28',tip:'Database password 只會顯示這一次，請另外存好；它是資料庫本身的密碼，絕對不能放進網頁程式。',
+ render:u=>sp('',`<div class="sp-page" style="display:grid;justify-content:center;overflow:auto"><div class="sp-card" style="width:620px"><div style="padding:14px 16px"><h3 style="font-size:16px">Create a new project</h3><p class="sub" style="margin:0">Your project will have its own dedicated instance and full Postgres database.</p></div>
+  <div class="sp-row"><span>Organization</span><span class="sp-in">my-org's Project <span class="bdg" style="font-size:10px;border:1px solid #D7DBDF;border-radius:999px;padding:0 7px;color:#687076">FREE</span></span></div>
+  <div class="sp-row"><span>GitHub (optional)</span><span><span class="sp-btn">${GHCAT.replace('#E6EDF3','#11181C').replace('<svg','<svg width="14" height="14"')} Connect GitHub</span></span></div>
+  <div class="sp-row"><span>Project name</span><span class="sp-in" data-k="pname"><span class="typing">${esc(S.proj)}</span></span></div>
+  <div class="sp-row"><span>Database password</span><span><span class="sp-in" style="background:${S.pw?'#E8F0FE':'#F8F9FA'}"><span>${S.pw?'••••••••••••••••':''}</span><span class="sp-btn" data-k="pwcopy">${ic('copy')} ${S.pwCopied?'Copied':'Copy'}</span></span><span class="strength"><i style="width:${S.pw?'100%':'0'}"></i></span><small style="color:#687076">${S.pw?'This password is strong. ':''}<span class="sp-link" data-k="gen">Generate a password</span>.</small></span></div>
+  <div class="sp-row"><span>Region</span><span class="sp-in">🌏 Asia-Pacific ⌄</span></div>
+  <div style="display:flex;justify-content:flex-end;padding:12px 16px;border-top:1px solid #E6E8EB;gap:8px"><span class="sp-btn">Cancel</span><span class="sp-btn g" data-k="create">Create new project</span></div></div></div>`),
+ tasks:[{k:'pname',t:'Project name 輸入：PAIN_SYSTEM',anim:async()=>{await typeIn('pname','PAIN_SYSTEM');},fx:()=>{S.proj='PAIN_SYSTEM';}},{k:'gen',t:'按「Generate a password」產生強密碼',fx:()=>{S.pw=true;}},{k:'pwcopy',t:'按 Copy，把密碼另外存好',fx:()=>{S.pwCopied=true;}},
+  {k:'create',t:'確認 Region 是 Asia-Pacific，按「Create new project」',anim:async()=>{await busyOv('Setting up project…',1400);},fx:()=>{S.created=true;}}]},
+/* B5 */{ph:'C',t:'SQL Editor：貼上並執行 AI 給的 SQL',pg:'p.29',tip:'看不懂 SQL 沒關係，它就是 AI 照你的需求寫好的「資料表設計圖」。看到 Success 就代表資料表建好了。',
+ render:u=>sp(u.page==='sql'?'sql':'home',u.page==='sql'?sqlEd({files:[{name:FN['01'],on:true}],tabs:[{name:FN['01'],on:true,dirty:u.pasted&&!S.sqlRun}],status:u.pasted&&!S.sqlRun?'Unsaved edits':'Autosave enabled',edK:'editor',runK:'run',resK:'results',
+   code:u.pasted?sqlLines(SETUP_SQL,40):'<div class="ln"><i>1</i><span><span class="sqe-cursor"></span></span></div><div class="sqe-empty">按 Ctrl＋V，貼上 AI 給的完整 SQL</div>',
+   res:u.running?'<span class="hint">Running…</span>':S.sqlRun?'Success. No rows returned':NOTRUN}):`<div class="sp-home"><div class="h-top"><h3>PAIN_SYSTEM</h3><span class="h-st"><i></i>Project Status</span></div><p class="sub">Welcome to your new project</p><p class="h-p">Your project has been deployed on its own instance, with its own API all set up and ready to use.</p><div class="h-cards"><div>${ic('table')}<b>Table Editor</b><small>Create and edit tables</small></div><div>${ic('sql')}<b>SQL Editor</b><small>Run SQL queries</small></div><div>${ic('lock')}<b>Authentication</b><small>Manage users</small></div></div></div>`),
+ tasks:[{k:'nav-sql',t:'左側點「SQL Editor」（>_ 圖示）',fx:u=>{u.page='sql';u.note='左側是一排圖示，滑鼠移上去會顯示名稱。<b>&gt;_</b> 就是 SQL Editor。';}},{k:'editor',t:'在編輯區按 Ctrl＋V，貼上 AI 給的完整 SQL',fx:u=>{u.pasted=true;u.note='SQL 貼上了。上方分頁出現一個小點，代表還沒存檔、還沒執行。';}},{k:'run',t:'按右上角綠色的「Run」（或 Ctrl＋Enter）',anim:async u=>{u.running=true;draw();await sleep(RM?100:900);u.running=false;},fx:u=>{S.sqlRun=true;u.note='按下 Run，資料庫就照這份「設計圖」建立資料表。';}},{k:'results',t:'看下方 Results：Success. No rows returned',fx:u=>{u.note='<b>Success. No rows returned</b>＝執行成功。建立資料表本來就不會回傳資料，所以是 No rows。';}}]},
+/* B6 */{ph:'C',t:'Table Editor：確認資料表建好了',pg:'p.30',tip:'pain_records 的欄位都是照 01-setup.sql 建出來的（往右還有頻率、持續時間、處置、複評等欄位）。user_id 旁邊的連結圖示＝外鍵：這筆評估屬於哪一個登入帳號。',
+ render:u=>sp(u.page==='table'?'table':'sql',u.page==='table'?tableEditor(u):`<div class="sp-page"><h3>SQL Editor</h3><p class="sub">Success. No rows returned</p></div>`),
+ tasks:[{k:'nav-table',t:'① 左側點「Table Editor」',fx:u=>{u.page='table';u.t=null;}},{k:'tb-pain',t:'② 點 pain_records：欄位都建好了，目前 0 筆',fx:u=>{u.t='pain_records';}},{k:'rls',t:'③ 點「2 RLS policies」：這張表有 2 條權限規則',fx:u=>{u.rlsPop=true;}},{k:'tb-prof',t:'④ 點 profiles：還沒有帳號，所以是空的',fx:u=>{u.rlsPop=false;u.t='profiles';}}]},
+/* B7 */{ph:'C',t:'Authentication：建立測試帳號',pg:'p.31',tip:'先建 admin@example.com，再建 user@example.com 和 nurse@example.com。之後要用不同帳號測試「A 看不到 B 的紀錄」，nurse 則用來練習改角色。',
+ render:u=>sp(u.page?'auth':'table',u.page?`<div class="sp-page" style="position:relative;height:100%"><div style="display:flex;justify-content:space-between;align-items:center"><h3>Users</h3><span class="sp-btn g" data-k="adduser">Add user ⌄</span></div>
+  <div style="display:flex;gap:8px;margin:10px 0"><span class="sp-box" style="margin:0;flex:1">🔍　Search by email</span><span class="sp-box" style="margin:0">All columns ⌄</span></div>
+  ${S.users.length?`<table class="users"><thead><tr><th>UID</th><th>Display name</th><th>Email</th><th>Provider</th></tr></thead><tbody>${S.users.map(x=>`<tr><td class="mono" style="font:12px var(--mono)">${x.id.slice(0,18)}…</td><td>${esc(x.name)}</td><td>${esc(x.email)}</td><td>Email</td></tr>`).join('')}</tbody></table>`:'<div class="sp-empty">👥<br><b style="color:#11181C">No users in your project</b><br>There are no users who signed up to your project</div>'}
+  ${u.menu?`<div class="menu" style="right:26px;top:56px"><div>✉　Send invitation</div><div class="sel" data-k="createnew">★　Create new user</div></div>`:''}
+  ${u.modal?`<div class="modal"><h4>Create a new user</h4><div class="mb"><label>Email address<span class="sp-in" data-k="email"><span class="typing">${esc(u.email||'')}</span></span></label><label>User Password<span class="sp-in">${u.email?'••••••••':''}</span></label><span class="cb"><span>✓</span>Auto confirm user?</span><span class="sp-btn gl" data-k="cuser" style="justify-content:center">Create user</span></div></div>`:''}</div>`:tableEditor({t:'profiles'})),
+ tasks:[{k:'nav-auth',t:'① 左側點「Authentication」',fx:u=>{u.page='users';}},{k:'adduser',t:'② 按「Add user」',fx:u=>{u.menu=true;}},{k:'createnew',t:'③ 選「Create new user」',fx:u=>{u.menu=false;u.modal=true;}},
+  {k:'email',t:'④ 填 Email：admin@example.com 和密碼（Auto confirm user 保持勾選）',anim:async()=>{await typeIn('email','admin@example.com');},fx:u=>{u.email='admin@example.com';}},
+  {k:'cuser',t:'⑤ 按「Create user」',fx:u=>{u.modal=false;S.users.push({id:ADMIN_ID,email:'admin@example.com',name:'admin',role:'user',at:'2026-10-07 08:49'});}},
+  {k:'adduser',t:'⑥ 用同樣方法，再建 user@example.com 和 nurse@example.com',anim:async()=>{await busyOv('Creating users…',800);},fx:()=>{S.users.push({id:USER_ID,email:'user@example.com',name:'使用者測試',role:'user',at:'2026-10-07 08:55'},{id:NURSE_ID,email:'nurse@example.com',name:'nurse',role:'user',at:'2026-10-07 09:02'});}}]},
+/* B8 */{ph:'C',t:'設定第一位管理者',pg:'p.32',tip:'從網頁申請的帳號一律是一般使用者。這段 SQL 把「最早建立的帳號」改成管理者；它是 AI 依 Prompt 05 第 3 點給你的。',
+ render:u=>sp('sql',sqlEd({files:[{name:FN['02'],k:'q2',on:u.open},{name:FN['01'],on:!u.open}],tabs:[{name:FN['01'],on:!u.open},...(u.open?[{name:FN['02'],on:true}]:[])],edK:'',runK:'run',resK:'results',
+  code:u.open?sqlLines(ADMIN_SQL):sqlLines(SETUP_SQL,14),rows:S.admin?'1 row':'',
+  res:S.admin?`<table><tr><th>id</th><th>email</th><th>display_name</th><th>role</th></tr><tr><td>${ADMIN_ID}</td><td>admin@example.com</td><td>admin</td><td>admin</td></tr></table>`:NOTRUN})),
+ tasks:[{k:'q2',t:'左邊 PRIVATE 裡點「02-set-first-user-admin.sql」',fx:u=>{u.open=true;u.note='PRIVATE 是你存起來的 SQL。點一下就會在右邊打開。';}},{k:'run',t:'按「Run」',anim:async()=>{await busyOv('Running…',700);},fx:()=>{S.admin=true;S.users[0].role='admin';}},{k:'results',t:'看 Results：admin@example.com 的 role 變成 admin',fx:u=>{u.note='<b>1 row</b>：有一個帳號被改成 admin，就是最早建立的 admin@example.com。';}}]},
+/* B8b */{ph:'C',t:'SQL 檔總覽：用 03、04 做檢查',pg:'SQL 檔 03–05',tip:'SQL 不只用來「建立」和「修改」，也可以用來「檢查」。select 開頭的 SQL 只看不改，可以放心執行。',
+ render:u=>sp('sql',sqlEd({files:['05','04','03','02','01'].map(k=>({name:FN[k],k:['03','04','05'].includes(k)?'f'+k:'',on:u.f===k})),tabs:u.f?[{name:FN[u.f],on:true}]:[{name:FN['02'],on:true}],runK:'run',
+  code:u.f?sqlLines(FILESQL[u.f],24):sqlLines(ADMIN_SQL),rows:u.res==='03'?'4 rows':u.res==='04'?S.users.length+' rows':'',res:u.res?resTable(u.res):NOTRUN})),
+ tasks:[{k:'f03',t:'點 03-check-setup.sql：這是「檢查」用的 SQL',fx:u=>{u.f='03';u.res=null;u.note='<b>03：檢查（只看不改）</b>確認資料表、RLS、權限規則、觸發器、函式、欄位權限是否都到位。';}},{k:'run',t:'按 Run：看檢查結果',anim:async()=>{await busyOv('Running…',600);},fx:u=>{u.res='03';u.note='兩個 RLS 都是 <b>true</b>：門禁有打開。';}},
+  {k:'f04',t:'點 04-account-diagnostics.sql：帳號診斷',fx:u=>{u.f='04';u.res=null;u.note='<b>04：診斷（只看不改）</b>把登入帳號和使用者資料對照，看每個帳號是否都有一筆資料。';}},{k:'run',t:'按 Run：三個帳號都對上了（OK）',anim:async()=>{await busyOv('Running…',600);},fx:u=>{u.res='04';u.note='每個帳號都是 <b>OK</b>：登入帳號和使用者資料一一對應。';}},
+  {k:'f05',t:'點 05-role-management.sql：下一步就來看懂它',fx:u=>{u.f='05';u.res=null;u.note='<b>05：修改</b>用 Email 指定帳號，把角色改成 admin 或改回 user。';}}]},
+/* B8c */{ph:'C',t:'看懂 SQL：把使用者改成管理者（05）',pg:'SQL 檔 05',tip:'SQL 就像一句格式固定的指令：update（改哪張表）→ set（改成什麼）→ where（只改哪一列）→ returning（改完給我看）。select 則是「只看不改」。',
+ render:u=>{const P=u.part||'';const cl=(k,line,on)=>`<span class="cl ${on?'on':''}" data-k="${k}">${line}</span>`;
+  const L=['-- 角色管理範本。請把指定 Email 改成實際帳號後，再單獨執行需要的區塊。','-- A. user -> admin',null,null,null,null,'-- B. admin -> user（為避免誤執行，預設註解）','/* update public.profiles set role=\'user\' … */','-- C. 查看目前角色',null];
+  const parts={2:['c-update','update public.profiles','update'],3:['c-set',"set role='admin', updated_at=now()",'set'],4:['c-where',"where lower(email)=lower('nurse@example.com')",'where'],5:['c-ret','returning id,email,display_name,role;','ret']};
+  const ed=L.map((l,i)=>{let inner;if(parts[i])inner=cl(parts[i][0],hiSql(parts[i][1]),P===parts[i][2]);else if(i===9)inner=cl('c-sel',[hiSql('select id,email,display_name,role,created_at'),hiSql('from public.profiles'),hiSql('order by created_at;')].join('\n'),P==='sel');else inner=hiSql(l)||' ';
+   const n=i===9?'10\n11\n12':String(i+1);return `<div class="ln"><i style="white-space:pre">${n}</i><span>${inner}</span></div>`;}).join('');
+  const rows=S.users.map(x=>{const hit=(P==='where'||P==='ret'||P==='run')&&x.email==='nurse@example.com';return `<tr class="${hit?'hr':''}"><td class="${P==='ret'?'hc':''}">${esc(x.email)}</td><td class="${P==='set'||P==='ret'?'hc':''} ${u.flash&&x.email==='nurse@example.com'?'flip':''}"><b>${x.role}</b></td></tr>`;}).join('');
+  const right=`<div class="st-right"><div class="st-cap">profiles 資料表（預覽）</div><table class="st-tbl ${P==='update'?'all':''}"><thead><tr><th class="${P==='ret'?'hc':''}">email</th><th class="${P==='set'||P==='ret'?'hc':''}">role</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return sp('sql',sqlEd({collapsed:true,tabs:['01','02','03','04','05'].map(k=>({name:FN[k],on:k==='05',dirty:k==='05'})),status:'Unsaved edits',runK:'run',resH:196,code:ed,rows:u.res==='A'?'1 row':u.res==='C'?'3 rows':'',res:u.res?resTable(u.res):NOTRUN,right}));},
+ tasks:[{k:'c-update',t:'「update public.profiles」：要改哪一張表？',fx:u=>{u.part='update';u.note='<b>update public.profiles</b><br>白話：我要<b>修改</b> profiles（使用者資料）這張表。';}},
+  {k:'c-set',t:'「set role=\'admin\'」：要改成什麼？',fx:u=>{u.part='set';u.note="<b>set role = 'admin'</b><br>白話：把 role 這一格<b>改成 admin</b>；updated_at 順便記下現在的時間。";}},
+  {k:'c-where',t:'「where lower(email)=…」：只改哪一列？',fx:u=>{u.part='where';u.note="<b>where lower(email) = lower('nurse@example.com')</b><br>白話：<b>只改</b> Email 是 nurse@example.com 的那一列。lower() 把大小寫統一，打成 Nurse@ 也找得到。<br><span class=\"warn\">⚠ 少了 where，整張表每個人都會變成管理者！</span>";}},
+  {k:'c-ret',t:'「returning …」：改完給我看',fx:u=>{u.part='ret';u.note='<b>returning id, email, display_name, role</b><br>白話：改完以後，把被改的那一列<b>列出來給我確認</b>。';}},
+  {k:'run',t:'按 Run：nurse@example.com 從 user 變成 admin',anim:async()=>{await busyOv('Running…',650);},fx:u=>{u.part='run';const n=S.users.find(x=>x.email==='nurse@example.com');if(n)n.role='admin';u.res='A';u.flash=true;u.note='<b>執行完成。</b>右邊預覽裡 nurse@example.com 的 role 變成 admin；下方 Results 只列出被改的這一列，因為有 returning。';}},
+  {k:'c-sel',t:'選取 C 區塊「查看目前角色」執行：只看不改',fx:u=>{u.part='sel';u.flash=false;u.res='C';u.note='<b>select ＝ 查詢，只看不改。</b>現在有 2 位管理者、1 位一般使用者。<br>要把管理者改回一般使用者，就用 B 區塊：拿掉 /* */、換成那個 Email，再單獨執行。';}}]},
+/* B9 */{ph:'C',t:'練習用：先關閉 Email 驗證',pg:'p.33',tip:'關掉 Confirm email，申請完帳號就能直接登入，練習測試比較快。正式給病人使用前，要記得再打開。',
+ render:u=>sp('auth',`<div class="sp-split"><div class="sp-sub"><h5>Authentication</h5><small>MANAGE</small><a class="${u.pr?'':'on'}">Users</a><a>OAuth Apps</a><small>NOTIFICATIONS</small><a>Emails</a><small>CONFIGURATION</small><a>Policies</a><a class="${u.pr?'on':''}" data-k="signin">Sign In / Providers</a><a>Passkeys</a><a>Sessions</a><a>Rate Limits</a></div>
+  ${u.pr?`<div class="sp-page" style="overflow:auto"><h3>Sign In / Providers</h3><p class="sub">Configure authentication providers and login methods for your users</p><div class="sp-card"><div style="padding:12px 16px;font-weight:600;border-bottom:1px solid #E6E8EB">User Signups</div>
+   <div class="tg"><span><b>Allow new users to sign up</b><br><small>If this is disabled, new users will not be able to sign up</small></span><span class="sw on"></span><em>允許新用戶註冊</em></div>
+   <div class="tg"><span><b>Allow manual linking</b><br><small>Enable manual linking APIs for your project</small></span><span class="sw"></span><em>允許手動連結</em></div>
+   <div class="tg"><span><b>Allow anonymous sign-ins</b><br><small>Enable anonymous sign-ins for your project</small></span><span class="sw"></span><em>允許匿名登入</em></div>
+   <div class="tg"><span><b>Confirm email</b><br><small>Users will need to confirm their email address before signing in for the first time</small></span><span class="sw ${S.confirm?'on':''}" data-k="confirm"></span><em>確認電子郵件：用戶首次登入前需要驗證電子郵件</em></div>
+   <div style="display:flex;justify-content:flex-end;padding:10px 16px;border-top:1px solid #E6E8EB"><span class="sp-btn ${S.confirm?'dis':'gl'}" data-k="save">${S.authSaved?'✓ Saved':'Save changes'}</span></div></div></div>`:`<div class="sp-page"><h3>Users</h3><p class="sub">3 users</p></div>`}</div>`),
+ tasks:[{k:'signin',t:'① Authentication 裡點「Sign In / Providers」',fx:u=>{u.pr=true;}},{k:'confirm',t:'② ★ 把「Confirm email」關掉',fx:()=>{S.confirm=false;}},{k:'save',t:'③ 按「Save changes」',fx:()=>{S.authSaved=true;}}]},
+/* B10 */{ph:'C',t:'複製連線資訊：Publishable key 與 API URL',pg:'p.34–35',tip:'網頁裡只能放這兩個可以公開的資訊。標示 secret 的金鑰、Database password，都不可以放進網頁。',
+ render:u=>{const pg=u.page||'home';const sub=`<div class="sp-sub"><h5>Settings</h5><small>CONFIGURATION</small><a>General</a><a>Infrastructure</a><a>Integrations</a><a class="${pg==='keys'?'on':''}" data-k="apikeys">API Keys</a><a>JWT Keys</a><a>Log Drains</a><small>INTEGRATIONS</small><a class="${pg==='data'?'on':''}" data-k="dataapi">Data API ↗</a><a>Vault</a></div>`;
+  let main=`<div class="sp-page"><h3>PAIN_SYSTEM</h3><p class="sub">Project Overview</p></div>`;
+  if(pg==='settings')main=`<div class="sp-split">${sub}<div class="sp-page"><h3>Project Settings</h3><p class="sub">選左邊的 API Keys</p></div></div>`;
+  if(pg==='keys')main=`<div class="sp-split">${sub}<div class="sp-page"><h3>API Keys</h3><p class="sub">Configure API keys to securely control access to your project</p><div style="display:flex;gap:18px;border-bottom:1px solid #E6E8EB;margin-bottom:14px;font-size:13px"><span style="border-bottom:2px solid #11181C;padding-bottom:6px">Publishable and secret API keys</span><span style="color:#687076">Legacy anon, service_role API keys</span></div>
+   <div class="sp-card" style="padding:14px 16px"><b style="font-size:15px">Publishable key</b><p class="sub" style="margin:4px 0 10px">This key is safe to use in a browser if you have enabled Row Level Security (RLS) for your tables and configured policies.</p><div style="display:grid;grid-template-columns:140px 1fr;gap:8px;align-items:center;border:1px solid #E6E8EB;border-radius:8px;padding:10px 12px"><span><b>default</b><br><small style="color:#687076">No description</small></span><span class="keybox"><code>${PUB_KEY.slice(0,26)}…</code><span class="copy" data-k="copykey">${ic('copy')}</span>${S.clipKey?'<span class="copied">Copied!</span>':''}</span></div></div></div></div>`;
+  if(pg==='data')main=`<div class="sp-split">${sub}<div class="sp-page"><p class="sub" style="margin:0 0 8px">Integrations ›　<b style="color:#11181C">Data API</b>　<span style="color:#249361;border:1px solid #9BE3C1;border-radius:999px;padding:0 7px;font-size:11px">INSTALLED</span></p><h3>&lt;/&gt; Data API</h3><p class="sub">Auto-generate an API directly from your database schema</p><div class="sp-card" style="padding:14px 16px"><b style="font-size:15px">API URL</b><p class="sub" style="margin:2px 0 10px">RESTful endpoint for querying and managing your database</p><div class="sp-in" style="background:#F8F9FA"><span style="font:12.5px var(--mono)">${API_URL}</span><span class="sp-btn" data-k="copyurl">${ic('copy')} ${S.clipUrl?'Copied':'Copy'}</span></div></div></div></div>`;
+  return sp(pg==='home'?'home':pg==='data'?'int':'gear',main)+clipTray();},
+ tasks:[{k:'nav-gear',t:'① 左下角齒輪「Project Settings」',fx:u=>{u.page='settings';}},{k:'apikeys',t:'② 點「API Keys」',fx:u=>{u.page='keys';}},{k:'copykey',t:'★ 複製 Publishable key（sb_publishable_ 開頭）',fx:()=>{S.clipKey=true;}},{k:'dataapi',t:'③④ 點「Data API」',fx:u=>{u.page='data';}},{k:'copyurl',t:'★ 複製 API URL',fx:()=>{S.clipUrl=true;}}]},
+/* C11 */{ph:'D',t:'把連線資訊貼進 app.js',pg:'p.36',tip:'API URL 複製來的結尾是 /rest/v1/，貼進程式時只留到 .supabase.co/，後面那段要刪掉。這是初學者最常卡住的地方。',
+ render:u=>{const url=S.codeUrl?`<span class="s">"${PROJ_URL}"</span>`:u.urlAnim?`<span class="s">"${PROJ_URL}<del style="color:#F14C4C">rest/v1/</del>"</span>`:`<span class="ph" data-k="l7">"你的 Project URL"</span>`;
+  const key=S.codeKey?`<span class="s">"${PUB_KEY}"</span>`:`<span class="ph" data-k="l8">"你的 Publishable Key"</span>`;
+  const L=[`<span class="k">const</span> <span class="v">SUPABASE_URL</span> = ${url};`,`<span class="k">const</span> <span class="v">SUPABASE_KEY</span> = ${key};`,'','<span class="k">const</span> <span class="v">db</span> = <span class="v">supabase</span>.<span class="fn">createClient</span>(','  <span class="v">SUPABASE_URL</span>,','  <span class="v">SUPABASE_KEY</span>',');','','<span class="k">const</span> <span class="v">pain</span> = <span class="v">document</span>.<span class="fn">getElementById</span>(<span class="s">"pain"</span>);','<span class="k">const</span> <span class="v">score</span> = <span class="v">document</span>.<span class="fn">getElementById</span>(<span class="s">"score"</span>);'];
+  return vs({side:explorer(),tabs:`<div class="vs-tab">${fileIc('index.html')}index.html</div><div class="vs-tab">${fileIc('style.css')}style.css</div><div class="vs-tab on">${fileIc('app.js')}app.js ${(S.codeUrl||S.codeKey)&&!S.codeSaved?'●':''}</div>`,
+   editor:`<div class="vs-code">${L.map((l,i)=>`<div class="vs-ln ${i===0||i===1?'cur':''}"><i>${i+1}</i><span>${l||' '}</span></div>`).join('')}</div>${S.codeUrl&&S.codeKey&&!S.codeSaved?'<span class="save-hint" data-k="save"><span class="kc">Ctrl</span>＋<span class="kc">S</span> 存檔</span>':''}${S.codeSaved?'<span class="save-hint">✓ 已存檔</span>':''}`,status:'JavaScript　UTF-8'})+clipTray();},
+ tasks:[{k:'l7',t:'① 第 1 行「你的 Project URL」換成 API URL，刪掉結尾的 rest/v1/',anim:async u=>{u.urlAnim=true;draw();await sleep(RM?100:1300);},fx:()=>{S.codeUrl=true;}},{k:'l8',t:'② 第 2 行「你的 Publishable Key」換成剛複製的 key',fx:()=>{S.codeKey=true;}},{k:'save',t:'③ 按 Ctrl＋S 存檔',fx:()=>{S.codeSaved=true;}}]},
+/* C12 */{ph:'D',t:'啟動本機伺服器，打開網頁',pg:'p.36–38',tip:'直接雙擊 index.html 會用 file:/// 開啟，瀏覽器會擋下連線；要先在終端機啟動伺服器，再用 http://localhost:5000 打開。也可以改用 VS Code 的 Live Server 擴充（p.37）。',
+ render:u=>{const v=u.view||'vs';
+  if(v==='file')return br('C:/Users/你/Desktop/NRS/index.html',`<div class="app" style="opacity:.55">${painApp({}).replace('<div class="app">','<div>')}</div><div class="dt"><div class="dt-tabs"><span>元素</span><span class="on">主控台</span><span>網路</span><span>應用程式</span><span style="margin-left:auto;color:#C5221F">⊗ 1</span></div><div class="dt-err" data-k="err">⊗ Unsafe attempt to load URL file:///C:/Users/你/Desktop/NRS/index.html from frame with URL file:///C:/Users/你/Desktop/NRS/index.html. 'file:' URLs are treated as unique security origins.</div><div style="padding:10px;color:#5F6368">瀏覽器開發者工具：Windows 按 F12 或 Ctrl＋Shift＋I；Mac 按 Command＋Option＋I。</div></div>`,'檔案');
+  if(v==='ok')return br('localhost:5000',`<div class="app"><div class="app-card login"><b style="font-size:17px">疼痛評估系統</b><span class="inp">user@example.com</span><span class="inp">••••••••</span><span class="abtn p" style="text-align:center">登入</span><span style="color:#2E8B57;font-size:12px;text-align:center">✓ 網頁成功打開，可以連到 Supabase 了</span></div></div>`);
+  const term=u.term?`<div class="vs-ptabs"><span>問題</span><span>輸出</span><span>偵錯主控台</span><span class="on">終端機</span><span>連接埠</span></div><div class="vs-term"><span class="pl ${u.cd?'':'cur'}" data-k="cmd1">PS C:\\Users\\你\\Desktop\\NRS&gt; <span class="typing">${u.cd?'cd "C:\\Users\\你\\Desktop\\NRS"':''}</span></span>${u.cd?`<span class="pl ${u.srv?'':'cur'}" data-k="cmd2">PS C:\\Users\\你\\Desktop\\NRS&gt; <span class="typing">${u.srv?'py -m http.server 5000':''}</span></span>`:''}${u.srv?'<span class="pl ok">Serving HTTP on :: port 5000 (http://[::]:5000/) ...　← 啟動成功</span>':''}</div>`:'';
+  return vs({side:explorer().replace('data-f="index.html"','data-f="index.html" data-k="dbl"'),tabs:`<div class="vs-tab on">${fileIc('app.js')}app.js</div>`,editor:`<div class="vs-code">${['<span class="k">const</span> <span class="v">SUPABASE_URL</span> = <span class="s">"'+PROJ_URL+'"</span>;','<span class="k">const</span> <span class="v">SUPABASE_KEY</span> = <span class="s">"'+PUB_KEY+'"</span>;'].map((l,i)=>`<div class="vs-ln"><i>${i+1}</i><span>${l}</span></div>`).join('')}</div>${!u.term&&u.tried?'<span class="save-hint" data-k="term" style="bottom:auto;top:110px;right:auto;left:30px">開啟終端機：Terminal → New Terminal，或 <span class="kc">Ctrl</span>＋<span class="kc">`</span></span>':''}${u.srv?`<span class="vs-btn" data-k="open" style="position:absolute;right:20px;top:14px;margin:0">打開瀏覽器：http://localhost:5000</span>`:''}`,panel:term});},
+ tasks:[{k:'dbl',t:'① 先試試看：在檔案總管直接雙擊 index.html',fx:u=>{u.view='file';}},{k:'err',t:'② 開發者工具出現紅字：file:/// 不能這樣開，要用伺服器',fx:u=>{u.view='vs';u.tried=true;}},{k:'term',t:'③ 回到 VS Code，開啟終端機（Ctrl＋`）',fx:u=>{u.term=true;}},
+  {k:'cmd1',t:'④ 輸入 cd "複製你的檔案夾路徑"，按 Enter',anim:async()=>{await typeIn('cmd1','cd "C:\\Users\\你\\Desktop\\NRS"',28);},fx:u=>{u.cd=true;}},{k:'cmd2',t:'⑤ 輸入 py -m http.server 5000，按 Enter',anim:async()=>{await typeIn('cmd2','py -m http.server 5000',40);},fx:u=>{u.srv=true;}},{k:'open',t:'⑥ 打開瀏覽器，網址輸入 http://localhost:5000',fx:u=>{u.view='ok';S.server=true;}}]},
+/* C13 */{ph:'D',t:'送出一筆評估，看資料進 Supabase',pg:'實際測試',tip:'左邊是你的網頁，右邊是 Supabase 後台。按下送出後，資料由 JavaScript 傳到 Supabase，存成 pain_records 的一列，狀態是「待處置」（pending_intervention）。這就是「記得住」。',
+ render:u=>`<div style="display:grid;grid-template-columns:50% 50%;height:100%"><div style="border-right:3px solid #11181C;min-width:0">${br('localhost:5000',u.login?painApp(u):`<div class="app"><div class="app-card login"><b style="font-size:17px">疼痛評估系統</b><span class="inp">user@example.com</span><span class="inp">••••••••</span><span class="abtn p" style="text-align:center" data-k="login">登入</span></div></div>`)}</div>
+  <div style="min-width:0" data-k="sbside">${spMini(`<div class="sp-grid-area"><div class="sp-tabs2"><span>public.profiles</span><span class="on">public.pain_records</span></div><div class="sp-tool"><span class="flt">🔍 Filter by id, user_id, case_code…</span><span class="sp-pill"><i>2</i>RLS</span><span class="sp-pill" data-k="refresh">${ic('refresh')}</span></div><div class="sp-gw">${teGrid('pain_records',u.ref?S.rows:[],u.ref?S.rows[0]&&S.rows[0][0]:null,['id','nrs','location','location_other','qualities'])}</div><div class="sp-foot"><span>${u.ref?S.rows.length:0} record${u.ref&&S.rows.length===1?'':'s'}</span></div></div>`)}</div></div>`,
+ tasks:[{k:'login',t:'① 用 user@example.com 登入',fx:u=>{u.login=true;}},{k:'code',t:'② 輸入個案代碼 123456，按「確認代碼」',anim:async()=>{await typeIn('code','123456',60,true);},fx:u=>{u.code=true;}},{k:'n4',t:'③ 點 NRS「4」',fx:u=>{u.nrs=4;}},{k:'qual',t:'④ 部位「腹部」、性質「刺痛」「痠痛」、頻率「間歇性」、持續 2 小時',fx:u=>{u.loc=true;}},
+  {k:'send',t:'⑤ 按「送出評估」',anim:async()=>{await fly($('[data-k="send"]'),$('[data-k="sbside"]'),'NRS 4 → pain_records');},fx:()=>{S.rows=[['5e2a1c90-3b7d-4f1e-9a2c-6d8b0e4487fc',USER_ID,'internal-5e2a1c903b7d4f1e9a2c6d8b0e4487fc','4','腹部',null,'["刺痛","痠痛"]',null,'間歇性','2026-10-07 08:30','2','小時',null,'pending_intervention','2026-10-07 10:24']];}},
+  {k:'refresh',t:'⑥ 回到 Supabase 按重新整理：多了一列！',fx:u=>{u.ref=true;}}]},
+/* D14 */{ph:'E',t:'GitHub：建立倉庫',pg:'p.39–40',tip:'倉庫（Repository）就是放網頁檔案的地方。名稱用英文，Public 才能用免費的 GitHub Pages 上線。',
+ render:u=>gh(u.form?`<div style="max-width:640px"><h3 style="margin:0 0 4px;font-size:20px">Create a new repository</h3><p style="color:#7D8590;margin:0 0 16px">Repositories contain a project's files and version history.</p>
+  <div class="gh-card" style="border:2px solid #F2B70500"><b>① General</b><div style="display:grid;grid-template-columns:150px 20px 1fr;gap:6px;align-items:end;margin-top:10px"><label style="display:grid;gap:4px">Owner *<span class="gh-in">${GH_USER} ⌄</span></label><span style="font-size:20px;text-align:center">/</span><label style="display:grid;gap:4px">Repository name *<span class="gh-in ${S.repoName?'ok':''}" data-k="rname"><span class="typing">${esc(S.repoName)}</span></span></label></div>${S.repoName?'<p style="color:#3FB950;margin:4px 0 0 170px;font-size:12.5px">✓ PAIN_NRS is available.</p>':''}
+  <label style="display:grid;gap:4px;margin-top:12px">Description<span class="gh-in" data-k="rdesc" style="background:#1C2533"><span class="typing">${esc(S.repoDesc)}</span></span></label></div>
+  <div class="gh-card" style="margin-top:12px"><b>② Configuration</b><div style="display:flex;justify-content:space-between;margin-top:10px"><span>Choose visibility *</span><span class="gh-btn gr">Public ⌄</span></div><div style="display:flex;justify-content:space-between;margin-top:10px"><span>Add README</span><span style="color:#7D8590">Off</span></div></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:12px"><span class="gh-btn" data-k="rcreate">Create repository</span></div></div>`:`<div style="display:grid;grid-template-columns:260px 1fr;gap:30px"><div><b>Create your first project</b><p style="color:#7D8590;font-size:12.5px">Ready to start building? Create a repository for a new idea.</p><span class="gh-btn" data-k="crepo">Create repository</span>　<span class="gh-link">Import repository</span></div><div><h3 style="margin:0 0 12px;font-size:20px">Home</h3><div class="gh-card" style="color:#7D8590">Ask anything or type @ to add context</div></div></div>`),
+ tasks:[{k:'crepo',t:'① 按「Create repository」',fx:u=>{u.form=true;}},{k:'rname',t:'② Repository name 輸入：PAIN_NRS',anim:async()=>{await typeIn('rname','PAIN_NRS');},fx:()=>{S.repoName='PAIN_NRS';}},{k:'rdesc',t:'③ Description 輸入：Teaching',anim:async()=>{await typeIn('rdesc','Teaching');},fx:()=>{S.repoDesc='Teaching';}},{k:'rcreate',t:'④ 確認是 Public，按「Create repository」',fx:()=>{S.repo=true;}}]},
+/* D15 */{ph:'E',t:'上傳網頁檔案',pg:'p.41–42',tip:'上傳前再確認一次：程式裡只有 Project URL 和 Publishable key，沒有 secret 金鑰，也沒有真實病人資料。',
+ render:u=>gh(u.up?`<div style="display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start"><div><p style="margin:0 0 10px"><span class="gh-link">PAIN_NRS</span> /</p><div class="gh-drop" data-k="drop">📄<br><b style="font-size:16px">Drag additional files here to add them to your repository</b><br>Or <span class="gh-link">choose your files</span></div>
+  ${S.uploaded?`<div class="gh-files">${['index.html','style.css','app.js','01-setup.sql'].map(f=>`<div><span>📄 ${f}</span><span>✕</span></div>`).join('')}</div><div style="display:flex;justify-content:flex-end;margin-top:10px"><span class="gh-btn" data-k="commit">${S.committed?'✓ Committed':'Commit changes'}</span></div>`:''}</div>
+  ${S.uploaded?'':`<div class="explorer" data-k="exp"><div class="eh">📁 NRS</div>${['index.html','style.css','app.js','01-setup.sql'].map(f=>`<div class="f">${f}</div>`).join('')}<div style="padding:6px 12px;color:#9AA">4 個項目　已選取 4 個項目</div></div>`}</div>`:`<div class="gh-qs"><b style="font-size:16px">Quick setup — if you've done this kind of thing before</b><div style="display:flex;gap:8px;align-items:center;margin:10px 0"><span class="gh-btn gr">Set up in Desktop</span>or<span class="gh-in" style="flex:1">https://github.com/${GH_USER}/PAIN_NRS.git</span></div>Get started by <span class="gh-link">creating a new file</span> or <span class="gh-link" data-k="upl">uploading an existing file</span>. We recommend every repository include a README.</div>`,ghRepoTabs('Code')),
+ tasks:[{k:'upl',t:'① 點「uploading an existing file」',fx:u=>{u.up=true;}},{k:'exp',t:'② 把 NRS 資料夾裡的全部檔案直接拖曳上去',anim:async()=>{await fly($('[data-k="exp"]'),$('[data-k="drop"]'),'4 個檔案','#1F6FEB');},fx:()=>{S.uploaded=true;}},{k:'commit',t:'③ 按「Commit changes」',fx:()=>{S.committed=true;}}]},
+/* D16 */{ph:'E',t:'開啟 GitHub Pages，網站上線',pg:'p.43',tip:'GitHub Pages 會把倉庫裡的 index.html 變成一個公開網址。部署通常要等一兩分鐘。',
+ render:u=>gh(u.set?`<div class="gh-set"><nav><a>⚙ General</a><small style="display:block;color:#7D8590;margin:10px 10px 4px;font-size:11.5px">Code and automation</small><a>Branches</a><a>Actions</a><a>Webhooks</a><a>Environments</a><a class="${u.pages?'on':''}" data-k="pages">▣ Pages</a></nav>
+  ${u.pages?`<div><h3 style="margin:0 0 10px;font-size:20px">GitHub Pages</h3>${S.pages?`<div class="gh-live"><span><b>Your site is live at <span class="gh-link">${SITE}</span></b><br><small style="color:#7D8590">Last deployed by ${GH_USER} just now</small></span><span class="gh-btn gr" data-k="visit">↗ Visit site</span></div>`:u.deploying?'<div class="gh-live">⏳ Deploying… 通常要等一兩分鐘</div>':'<div class="gh-card" style="color:#7D8590">GitHub Pages is designed to host your pages from a GitHub repository.</div>'}
+   <h4 style="margin:18px 0 6px">Build and deployment</h4><p style="margin:0 0 6px;color:#7D8590">Source</p><span class="gh-btn gr">Deploy from a branch ⌄</span><p style="margin:14px 0 6px"><b>Branch</b></p><div style="display:flex;gap:8px" data-k="branch"><span class="gh-btn gr">⑂ ${u.br?'main':'None'} ⌄</span><span class="gh-btn gr">📁 / (root) ⌄</span><span class="gh-btn ${u.br?'':'gr'}" data-k="psave">Save</span></div></div>`:'<div style="color:#7D8590">選左邊的 Pages</div>'}</div>`:`<div class="gh-card"><b>PAIN_NRS</b><div class="gh-files">${['index.html','style.css','app.js','01-setup.sql'].map(f=>`<div><span>📄 ${f}</span><span style="color:#7D8590">Add files via upload</span></div>`).join('')}</div></div>`,ghRepoTabs(u.set?'Settings':'Code')),
+ tasks:[{k:'ghset',t:'① 點上方「Settings」',fx:u=>{u.set=true;}},{k:'pages',t:'② 左側點「Pages」',fx:u=>{u.pages=true;}},{k:'branch',t:'③ Branch 選 main、/(root)',fx:u=>{u.br=true;}},{k:'psave',t:'④ 按「Save」，等部署完成',anim:async u=>{u.deploying=true;draw();await sleep(RM?100:1600);},fx:()=>{S.pages=true;}},{k:'visit',t:'⑤ 出現「Your site is live at …」，按 Visit site',fx:()=>{}}]},
+/* D17 */{ph:'E',t:'做成 QR Code，分享給別人',pg:'p.44',tip:'網址框可以換成你自己的 GitHub Pages 網址，右邊會產生 QR Code，別人用手機一掃就能打開你的系統。',
+ render:u=>`<div class="qrs"><div class="qrs-top"><b>QR碼產生器</b><span>我的QR碼</span><span>掃描QR碼</span><span>QR碼簡介</span><span>操作說明</span><span style="margin-left:auto">qr.ioi.tw/zh</span></div><div class="qrs-body"><div class="qrs-p"><h5>QR碼內容輸入</h5><div class="pb"><b>選擇 QR Code 類別</b><span style="border:1px solid #CCC;border-radius:6px;padding:4px 8px">網址 ⌄</span><b>網址</b><div data-k="qurl"><textarea id="qrUrl" ${S.qr?'':'readonly'} aria-label="網址">${S.qr?esc(u.url||SITE):''}</textarea></div><small style="color:#6A7">可以改成你自己的網址</small></div></div>
+  <div class="qrbox" data-k="qrimg"><div id="qrOut">${S.qr?'':'<span class="qph">貼上網址後，這裡會出現 QR Code</span>'}</div></div><div class="qrs-p"><h5>QR碼設定</h5><div class="pb"><span>QR碼尺寸：400px</span><span>容錯率：H - 高(30%)</span><span>邊框：1</span></div></div></div></div>`,
+ after:u=>{if(S.qr)drawQR(u.url||SITE);const ta=$('#qrUrl');if(ta&&S.qr){ta.addEventListener('input',()=>{u.url=ta.value;drawQR(ta.value);});}},
+ tasks:[{k:'qurl',t:'① 把剛剛的網站網址貼上',fx:()=>{S.qr=true;}},{k:'qrimg',t:'② 出現 QR Code：用手機掃描，打開你的系統',fx:()=>{}}]},
+/* F1 */{ph:'F',t:'開新對話，先貼 Prompt 00 開場約定',pg:'Prompt 00',tip:'每次開新對話，都先貼第 0 段：說好全程繁中、每次給完整檔案、只用基本技術、只用假資料。之後全程用同一個對話視窗，AI 才記得前面的需求。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[{k:'newchat',t:'在 ChatGPT 左上方按「新對話」',fx:u=>{S.chat=[];u.note='<b>一個系統，一個對話。</b>從頭到尾都用這個對話視窗。';}},...promptTasks('p00','f')]},
+/* F2 */{ph:'F',t:'Prompt 01、02：說目的，回答七個問題',pg:'Prompt 01–02',tip:'第一句話說「目的」，不是說技術。接著回答七個問題，請 AI 整理成規格書。看完一定要確認：AI 有沒有誤會你的意思？不對就直接告訴它哪裡要改。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[...promptTasks('p01','f'),...promptTasks('p02','f'),{k:'spec',t:'看 AI 整理的規格書，確認內容正確',fx:u=>{u.note='<b>這就是一份簡易需求規格書。</b>看 AI 有沒有誤會：使用者、要記錄的資料、要不要登入。不對就直接回「第 3 點要改成…」。';}}]},
+/* F3 */{ph:'F',t:'Prompt 03：先讓 AI 規劃，不寫程式',pg:'Prompt 03',tip:'不要一開始就叫 AI 寫程式。先請它規劃頁面、按鈕、要保存的資料，你看得懂、確認了，再進下一步。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[...promptTasks('p03','f'),{k:'plan',t:'看「需要保存的資料」：這就是之後的兩張資料表',fx:u=>{u.note='<b>profiles 和 pain_records</b>，就是之後在 Supabase 會看到的兩張資料表。';}}]},
+/* F4 */{ph:'F',t:'Prompt 04：先做出看得到的畫面',pg:'Prompt 04',tip:'第一版先不接資料庫，只要「看得到、點得動」。AI 會告訴你檔案怎麼命名、放在哪裡、怎麼打開測試，照著做就好。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[...promptTasks('p04','f'),{k:'howto',t:'看最下面：檔案怎麼命名、放哪裡、怎麼打開',fx:u=>{u.note='<b>照著做就好。</b>這就是 Prompt 04 第 4 點要 AI 給的說明。';}}]},
+/* F5 */{ph:'F',t:'看不懂？請 AI 用白話解釋',pg:'使用方式 04',tip:'AI 說的話看不懂，不用自己查，直接回：「請用白話解釋給完全不懂程式的人聽」。你負責描述需求和驗收，看不懂就問。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[...promptTasks('pq','f')]},
+/* F6 */{ph:'F',t:'Prompt 05：接上資料庫，AI 給三樣東西',pg:'Prompt 05',tip:'第 4 段做完，要先到 VS Code 建檔、測試畫面，沒問題才回來貼第 5 段。AI 會給三樣東西：修改後的完整檔案、SQL、設定教學。',
+ render:u=>cgUI(u,cgChat(u)),
+ tasks:[...promptTasks('p05','f'),
+  {k:'t-js',t:'第 1 樣：修改後的完整檔案（app.js 多了 Supabase 連線設定）',fx:u=>{u.note='<b>修改後的完整檔案</b>：在 VS Code 把舊內容全部刪掉，整個貼上新的。';}},
+  {k:'t-sql',t:'第 2 樣：完整 SQL（標籤是 SQL）',fx:u=>{u.note='<b>SQL 不放進 VS Code 執行。</b>它要貼到 Supabase 的 SQL Editor 執行。';}},
+  {k:'b5-steps',t:'第 3 樣：一步一步的設定教學',fx:u=>{u.note='<b>照著設定教學一步一步做</b>，就是 B～E 段的內容。';}}]}
+
+];
+const PH={A:'A｜ChatGPT：產生程式、看懂標題',B:'B｜VS Code：複製貼上',C:'C｜Supabase 設定',D:'D｜啟動測試',E:'E｜上線分享',F:'F｜Prompt 教學：一段一段帶 AI 做'};
+
+/* ---------- engine ---------- */
+let cur=0,ti=0,ui={},busy=false;const doneSteps=new Set(pref.get('bfs-done',[]));
+function fastForward(n){S=fresh();for(let i=0;i<n;i++){const u={};STEPS[i].tasks.forEach(t=>t.fx(u));}}
+function go(n){cur=Math.max(0,Math.min(STEPS.length-1,n));fastForward(cur);ui={};ti=0;draw();$('#scrwrap').scrollIntoView&&0;}
+function draw(){const st=STEPS[cur];$('#scr').innerHTML=st.render(ui);if(st.after)st.after(ui);scrollChat();placeBox();renderPanel();renderRail();}
+function scrollChat(){const ch=$('.chat',$('#scr'));if(!ch)return;ch.scrollTop=ch.scrollHeight;const st0=STEPS[cur];const t=target()||(st0.focusDone&&ti>=st0.tasks.length?$(`[data-k="${st0.focusDone}"]`,$('#scr')):null);const ib=t&&t.closest('.cg-blk-b');if(ib){const a=ib.getBoundingClientRect(),b=t.getBoundingClientRect();ib.scrollTop+=(b.top-a.top)-a.height/2;}if(t&&ch.contains(t)){const cr=ch.getBoundingClientRect(),tr=t.getBoundingClientRect();ch.scrollTop+=(tr.top-cr.top)-44;}ch.addEventListener('scroll',()=>requestAnimationFrame(placeBox),{passive:true});$$('.cg-blk-b',ch).forEach(b=>b.addEventListener('scroll',()=>requestAnimationFrame(placeBox),{passive:true}));}
+function target(){const t=STEPS[cur].tasks[ti];return t?$(`[data-k="${t.k}"]`,$('#scr')):null;}
+function placeBox(){const hl=$('#hl'),el=target();if(!el||busy){hl.hidden=true;return;}const w=$('#scrwrap').getBoundingClientRect(),r=el.getBoundingClientRect(),p=4;let L=r.left,T=r.top,R=r.right,B=r.bottom;const clips=[$('#scr').getBoundingClientRect()];const ch=el.closest('.chat');if(ch)clips.push(ch.getBoundingClientRect());const ib=el.closest('.cg-blk-b');if(ib)clips.push(ib.getBoundingClientRect());clips.forEach(c=>{L=Math.max(L,c.left);T=Math.max(T,c.top);R=Math.min(R,c.right);B=Math.min(B,c.bottom);});
+  if(R-L<6||B-T<6){hl.hidden=true;return;}hl.hidden=false;const sr=$('#scr').getBoundingClientRect();hl.classList.remove('sl','sr','st');hl.classList.add(L-sr.left>44?'sl':(sr.right-R>44?'sr':'st'));hl.style.left=(L-w.left-p)+'px';hl.style.top=(T-w.top-p)+'px';hl.style.width=(R-L+p*2)+'px';hl.style.height=(B-T+p*2)+'px';$('#hln').textContent=ti+1;}
+async function doTask(){const st=STEPS[cur],t=st.tasks[ti];if(!t||busy)return;busy=true;$('#hl').hidden=true;
+  try{if(t.anim)await t.anim(ui);t.fx(ui);ti++;}finally{busy=false;}
+  if(ti>=st.tasks.length){doneSteps.add(cur);pref.set('bfs-done',[...doneSteps]);}draw();}
+function renderPanel(){const st=STEPS[cur],all=ti>=st.tasks.length;const pn=$('#pNote');pn.hidden=!ui.note;pn.innerHTML=ui.note||'';const px=$('#pExtra');px.hidden=!st.panel;px.innerHTML=st.panel?st.panel(ui):'';
+  $('#pTitle').innerHTML=`<small>${PH[st.ph]}　步驟 ${cur+1} / ${STEPS.length}</small>${esc(st.t)}`;$('#pPage').textContent=/^p\./.test(st.pg)?'對照簡報 '+st.pg:st.pg;
+  $('#pTasks').innerHTML=st.tasks.map((t,i)=>`<li class="${i<ti?'done':i===ti?'now':''}"><i>${i<ti?'✓':i+1}</i><span>${esc(t.t.replace(/^[①②③④⑤⑥⑦⑧⑨⑩]+\s*/,''))}</span></li>`).join('');
+  const tip=$('#pTip');tip.classList.toggle('win',all);tip.textContent=all?(cur===STEPS.length-1?'完成！從一個空資料夾，到有資料庫、有權限、可以分享的疼痛評估系統。這就是「想 → 寫 → 問 → 做 → 測 → 改」裡的「做」。':'✓ 這一步完成。'+st.tip):st.tip;
+  $('#bPrev').disabled=cur===0;$('#bNext').disabled=cur===STEPS.length-1;$('#bNext').classList.toggle('pulse',all&&cur<STEPS.length-1);$('#bAuto').disabled=all;
+  $('#bHint').textContent=all?'':'點黃色框框，或按「自動示範」';}
+function renderRail(){$('#rail').innerHTML=Object.entries(PH).map(([k,label])=>`<div class="phase"><h4>${label}</h4><ol>${STEPS.map((s,i)=>s.ph===k?`<li><button type="button" data-i="${i}" class="${i===cur?'on':''} ${doneSteps.has(i)?'done':''}"><i>${doneSteps.has(i)?'✓':i+1}</i><span>${esc(s.t)}</span></button></li>`:'').join('')}</ol></div>`).join('');}
+$('#rail').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b&&!busy)go(+b.dataset.i);});
+$('#scr').addEventListener('click',e=>{if(busy)return;const el=target();if(!el)return;const hb=$('#hl');let inBox=false;if(!hb.hidden){const r=hb.getBoundingClientRect();inBox=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;}if(el.contains(e.target)||inBox){e.preventDefault();const t=STEPS[cur].tasks[ti];if(t&&t.check&&!t.check(e,ui)){draw();return;}doTask();}else{const hl=$('#hl');hl.classList.remove('nudge');void hl.offsetWidth;hl.classList.add('nudge');}});
+$('#bPrev').addEventListener('click',()=>{if(!busy)go(cur-1);});
+$('#bNext').addEventListener('click',()=>{if(!busy)go(cur+1);});
+$('#bRedo').addEventListener('click',()=>{if(!busy)go(cur);});
+$('#bAuto').addEventListener('click',async()=>{const b=$('#bAuto');b.disabled=true;while(ti<STEPS[cur].tasks.length){await sleep(RM?80:650);if(busy)break;await doTask();}});
+window.addEventListener('resize',()=>requestAnimationFrame(placeBox));
+
+/* ---------- helpers ---------- */
+async function typeIn(k,text,speed,input){const host=$(`[data-k="${k}"]`,$('#scr'));if(!host)return;const el=$('.typing',host)||$(`[data-k="${k}"] ~ * .typing`,$('#scr'))||(host.closest('.box')&&$('.typing',host.closest('.box')));if(!el)return;
+  if(RM){el.textContent=text;return;}for(let i=1;i<=text.length;i++){el.textContent=text.slice(0,i);await sleep(speed||55);}await sleep(250);}
+async function busyOv(msg,ms){const d=document.createElement('div');d.className='busy-ov';d.innerHTML=`<span>${esc(msg)}</span>`;$('#scr').appendChild(d);await sleep(RM?80:ms);d.remove();}
+function fly(from,to,label,color){return new Promise(res=>{if(!from||!to){res();return;}const stage=$('#scrwrap');const f=document.createElement('div');f.className='flyer';f.textContent=label;if(color)f.style.background=color;stage.appendChild(f);
+  const s=stage.getBoundingClientRect(),a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),w=f.offsetWidth,h=f.offsetHeight;
+  const A=`translate(${a.left-s.left+a.width/2-w/2}px,${a.top-s.top+a.height/2-h/2}px)`,B=`translate(${b.left-s.left+b.width/2-w/2}px,${b.top-s.top+b.height/2-h/2}px)`;
+  if(!f.animate||RM){f.remove();res();return;}const an=f.animate([{transform:A,opacity:0},{transform:A,opacity:1,offset:.1},{transform:B,opacity:1,offset:.9},{transform:B,opacity:0}],{duration:1000,easing:'cubic-bezier(.5,0,.3,1)'});an.onfinish=()=>{f.remove();res();};});}
+function drawQR(url){const out=$('#qrOut');if(!out)return;out.innerHTML='';if(!url.trim()){out.innerHTML='<span class="qph">請輸入網址</span>';return;}
+  if(window.QRCode){try{new window.QRCode(out,{text:url.trim(),width:230,height:230,correctLevel:window.QRCode.CorrectLevel.H});return;}catch(e){}}
+  out.innerHTML='<span class="qph">QR Code 元件沒有載入，請到 qr.ioi.tw/zh 產生</span>';}
+/* typing fallback for case code box */
+STEPS.find(s=>s.t.startsWith('送出一筆評估')).tasks[1].anim=async()=>{const el=$('.box .typing',$('#scr'));if(!el)return;if(RM){el.textContent='123456';return;}for(let i=1;i<=6;i++){el.textContent='123456'.slice(0,i);await sleep(70);}await sleep(250);};
+
+const rb=$('#resetAll');let rbT=null;
+rb.addEventListener('click',()=>{if(busy)return;if(!rb.classList.contains('arm')){rb.classList.add('arm');rb.textContent='再按一次：清除進度，回到第 1 步';clearTimeout(rbT);rbT=setTimeout(()=>{rb.classList.remove('arm');rb.textContent='從頭開始';},4000);return;}
+  clearTimeout(rbT);rb.classList.remove('arm');rb.textContent='從頭開始';try{localStorage.removeItem('bfs-done');}catch(e){}doneSteps.clear();go(0);window.scrollTo({top:0,behavior:RM?'auto':'smooth'});toastMsg('已清除進度，從第 1 步重新開始');});
+function toastMsg(t){const d=document.createElement('div');d.className='rs-toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600);}
+go(0);
+})();
+</script>
+</body>
+</html>
